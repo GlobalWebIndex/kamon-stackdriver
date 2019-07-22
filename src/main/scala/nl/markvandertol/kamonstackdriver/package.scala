@@ -6,7 +6,7 @@ import java.util.concurrent.Executor
 import com.google.api.core.ApiFuture
 import com.google.protobuf.Timestamp
 
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
 package object kamonstackdriver {
@@ -19,17 +19,16 @@ package object kamonstackdriver {
 
     val promise = Promise[T]()
     future.addListener(new Runnable {
-      def run(): Unit = {
+      def run(): Unit =
         promise.complete(Try(future.get()))
-      }
     }, executor)
     promise.future
   }
 
-  private[kamonstackdriver] def instantToTimestamp(instant: Instant): Timestamp = {
-    Timestamp.newBuilder()
+  private[kamonstackdriver] def instantToTimestamp(instant: Instant): Timestamp =
+    Timestamp
+      .newBuilder()
       .setSeconds(instant.getEpochSecond)
       .setNanos(instant.getNano)
       .build()
-  }
 }

@@ -3,19 +3,19 @@ package nl.markvandertol.kamonstackdriver
 import java.util
 
 import com.google.api.MetricDescriptor.MetricKind
-import com.google.api.{ Metric, MonitoredResource }
+import com.google.api.{Metric, MonitoredResource}
 import com.google.cloud.ServiceOptions
-import com.google.cloud.monitoring.v3.{ MetricServiceClient, MetricServiceSettings }
+import com.google.cloud.monitoring.v3.{MetricServiceClient, MetricServiceSettings}
 import com.google.monitoring.v3._
 import com.typesafe.config.Config
-import kamon.metric.{ MetricDistribution, MetricValue, PeriodSnapshot }
+import kamon.metric.{MetricDistribution, MetricValue, PeriodSnapshot}
 import kamon.util.CallingThreadExecutionContext
-import kamon.{ Kamon, MetricReporter }
+import kamon.{Kamon, MetricReporter}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 class StackdriverMetricReporter extends MetricReporter {
 
@@ -27,19 +27,20 @@ class StackdriverMetricReporter extends MetricReporter {
 
   private var client: MetricServiceClient = _
 
-  private var projectId: String = _
+  private var projectId: String                                                  = _
   private var histogramToDistributionConverter: HistogramToDistributionConverter = _
-  private var resource: MonitoredResource = _
+  private var resource: MonitoredResource                                        = _
 
   def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
-    val interval = TimeInterval.newBuilder()
+    val interval = TimeInterval
+      .newBuilder()
       .setEndTime(instantToTimestamp(snapshot.from))
       .build()
 
     val histogramSeries = snapshot.metrics.histograms.map(v => histogram(v, interval))
-    val counterSeries = snapshot.metrics.counters.map(v => counters(v, interval))
-    val gaugeSeries = snapshot.metrics.gauges.map(v => counters(v, interval))
-    val minMaxSeries = snapshot.metrics.rangeSamplers.map(v => histogram(v, interval))
+    val counterSeries   = snapshot.metrics.counters.map(v => counters(v, interval))
+    val gaugeSeries     = snapshot.metrics.gauges.map(v => counters(v, interval))
+    val minMaxSeries    = snapshot.metrics.rangeSamplers.map(v => histogram(v, interval))
 
     val allSeries: Seq[TimeSeries] = histogramSeries ++ counterSeries ++ gaugeSeries ++ minMaxSeries
 
@@ -47,7 +48,8 @@ class StackdriverMetricReporter extends MetricReporter {
       val allSeriesSplit = allSeries.grouped(maxTimeseriesPerRequest)
 
       allSeriesSplit.foreach { series =>
-        val request = CreateTimeSeriesRequest.newBuilder()
+        val request = CreateTimeSeriesRequest
+          .newBuilder()
           .addAllTimeSeries(series.asJava)
           .setName(ProjectName.format(projectId))
           .build()
@@ -57,22 +59,27 @@ class StackdriverMetricReporter extends MetricReporter {
   }
 
   private[this] def readResource(config: Config): Unit = {
-    val resourceLabels = config.getConfig("labels").entrySet().asScala.map { entry =>
-      entry.getKey -> entry.getValue.unwrapped().toString
-    }.toMap
+    val resourceLabels = config
+      .getConfig("labels")
+      .entrySet()
+      .asScala
+      .map { entry =>
+        entry.getKey -> entry.getValue.unwrapped().toString
+      }
+      .toMap
 
-    resource = MonitoredResource.newBuilder()
+    resource = MonitoredResource
+      .newBuilder()
       .setType(config.getString("type"))
       .putAllLabels(resourceLabels.asJava)
       .build()
   }
 
-  private[this] def writeSeries(timeSeriesRequest: CreateTimeSeriesRequest): Unit = {
+  private[this] def writeSeries(timeSeriesRequest: CreateTimeSeriesRequest): Unit =
     client.createTimeSeriesCallable().futureCall(timeSeriesRequest).onComplete {
       case Success(_) => //ok
       case Failure(e) => logger.error("Failed to send TimeSeries", e)
     }
-  }
 
   private[this] val sanitizationRegexp = """[^\w]""".r
 
@@ -86,18 +93,21 @@ class StackdriverMetricReporter extends MetricReporter {
   }
 
   private def newTimeSeries(name: String, tags: kamon.Tags, typedValue: TypedValue, timeInterval: TimeInterval) = {
-    val point = Point.newBuilder()
+    val point = Point
+      .newBuilder()
       .setValue(typedValue)
       .setInterval(timeInterval)
       .build()
 
     val fullMetricType = "custom.googleapis.com/kamon/" + name.replace('.', '/')
-    val metric = Metric.newBuilder()
+    val metric = Metric
+      .newBuilder()
       .setType(fullMetricType)
       .putAllLabels(sanitizeTags(tags))
       .build()
 
-    TimeSeries.newBuilder()
+    TimeSeries
+      .newBuilder()
       .setMetric(metric)
       .addPoints(point)
       .setMetricKind(MetricKind.GAUGE)
@@ -108,14 +118,16 @@ class StackdriverMetricReporter extends MetricReporter {
   def histogram(v: MetricDistribution, timeInterval: TimeInterval): TimeSeries = {
     val distribution = histogramToDistributionConverter.histogramToDistribution(v.distribution.buckets, v.distribution.count)
 
-    val typedValue = TypedValue.newBuilder()
+    val typedValue = TypedValue
+      .newBuilder()
       .setDistributionValue(distribution)
       .build()
     newTimeSeries(v.name, v.tags, typedValue, timeInterval)
   }
 
   def counters(v: MetricValue, timeInterval: TimeInterval): TimeSeries = {
-    val typedValue = TypedValue.newBuilder()
+    val typedValue = TypedValue
+      .newBuilder()
       .setInt64Value(v.value)
       .build()
 
@@ -129,12 +141,10 @@ class StackdriverMetricReporter extends MetricReporter {
         new ExponentialBucket(
           numFiniteBuckets = config.getInt("num-finite-buckets"),
           growthFactor = config.getDouble("growth-factor"),
-          scale = config.getDouble("scale"))
+          scale = config.getDouble("scale")
+        )
       case "linear" =>
-        new LinearBucket(
-          numFiniteBuckets = config.getInt("num-finite-buckets"),
-          width = config.getDouble("width"),
-          offset = config.getDouble("offset"))
+        new LinearBucket(numFiniteBuckets = config.getInt("num-finite-buckets"), width = config.getDouble("width"), offset = config.getDouble("offset"))
       case _ =>
         throw new IllegalArgumentException(s"Unknown bucket type: $bucketType")
     }

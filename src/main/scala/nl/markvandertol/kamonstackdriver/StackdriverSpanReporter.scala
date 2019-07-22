@@ -3,35 +3,36 @@ package nl.markvandertol.kamonstackdriver
 import java.nio.ByteBuffer
 
 import com.google.cloud.ServiceOptions
-import com.google.cloud.trace.v1.{ TraceServiceClient, TraceServiceSettings }
-import com.google.devtools.cloudtrace.v1.{ PatchTracesRequest, Trace, TraceSpan, Traces }
+import com.google.cloud.trace.v1.{TraceServiceClient, TraceServiceSettings}
+import com.google.devtools.cloudtrace.v1.{PatchTracesRequest, Trace, TraceSpan, Traces}
 import com.typesafe.config.Config
 import kamon.trace.IdentityProvider.Identifier
 import kamon.trace.Span
 import kamon.trace.Span.TagValue
 import kamon.util.CallingThreadExecutionContext
-import kamon.{ Kamon, SpanReporter }
+import kamon.{Kamon, SpanReporter}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Set
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 class StackdriverSpanReporter extends SpanReporter {
   private val logger = LoggerFactory.getLogger(getClass)
 
   private implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
-  private var projectId: String = _
-  private var client: TraceServiceClient = _
+  private var projectId: String               = _
+  private var client: TraceServiceClient      = _
   private var skipOperationNames: Set[String] = Set.empty
 
   def reportSpans(spans: Seq[Span.FinishedSpan]): Unit = {
     val convertedSpans = convertSpans(spans)
     if (convertedSpans.nonEmpty) {
 
-      val traces = Traces.newBuilder()
+      val traces = Traces
+        .newBuilder()
         .addAllTraces(convertedSpans.asJava)
         .build()
 
@@ -65,7 +66,8 @@ class StackdriverSpanReporter extends SpanReporter {
     }
 
   private def writeTraces(traces: Traces): Unit = {
-    val request = PatchTracesRequest.newBuilder()
+    val request = PatchTracesRequest
+      .newBuilder()
       .setProjectId(projectId)
       .setTraces(traces)
       .build()
@@ -78,10 +80,11 @@ class StackdriverSpanReporter extends SpanReporter {
 
   private def convertSpans(spans: Seq[Span.FinishedSpan]): Seq[Trace] = {
     val convertedSpansWithTraceId = spans.filterNot(finishedSpan => skipOperationNames(finishedSpan.operationName)).map(convertSpan)
-    val convertedSpansPerTraceId = convertedSpansWithTraceId.groupBy(_._1)
+    val convertedSpansPerTraceId  = convertedSpansWithTraceId.groupBy(_._1)
     convertedSpansPerTraceId.map {
       case (traceId, convertedSpans) =>
-        Trace.newBuilder()
+        Trace
+          .newBuilder()
           .setProjectId(projectId)
           .setTraceId(traceId)
           .addAllSpans(convertedSpans.map(_._2).asJava)
@@ -92,7 +95,8 @@ class StackdriverSpanReporter extends SpanReporter {
   private def convertSpan(span: Span.FinishedSpan): (String, TraceSpan) = {
     val traceID = span.context.traceID.string
 
-    val traceSpan = TraceSpan.newBuilder()
+    val traceSpan = TraceSpan
+      .newBuilder()
       .setStartTime(instantToTimestamp(span.from))
       .setEndTime(instantToTimestamp(span.to))
       .putAllLabels(tagsToLabels(span.tags).asJava)
@@ -107,8 +111,8 @@ class StackdriverSpanReporter extends SpanReporter {
   private def tagsToLabels(tags: Map[String, TagValue]): Map[String, String] =
     tags.map {
       case (key, value: TagValue.Boolean) => (key, value.text)
-      case (key, value: TagValue.Number) => (key, value.number.toString)
-      case (key, value: TagValue.String) => (key, value.string)
+      case (key, value: TagValue.Number)  => (key, value.number.toString)
+      case (key, value: TagValue.String)  => (key, value.string)
     }
 
   private def identifierToLong(identifier: Identifier): Option[Long] = {

@@ -2,7 +2,7 @@ package nl.markvandertol.kamonstackdriver
 
 import java.io.FileInputStream
 
-import com.google.api.gax.core.{ CredentialsProvider, FixedCredentialsProvider }
+import com.google.api.gax.core.{CredentialsProvider, FixedCredentialsProvider}
 import com.google.auth.oauth2.GoogleCredentials
 import com.typesafe.config.Config
 

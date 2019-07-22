@@ -11,12 +11,12 @@ trait HistogramToDistributionConverter {
   def bucketOptions: BucketOptions
 
   @SuppressWarnings(Array("TraversableLast"))
-  def histogramToDistributionValues(buckets: Seq[Bucket]): Seq[java.lang.Long] = {
+  def histogramToDistributionValues(buckets: Seq[Bucket]): Seq[java.lang.Long] =
     if (buckets.isEmpty) {
       new Array[java.lang.Long](0)
     } else {
       val lastBucket = valueToBucketIndex(buckets.last.value)
-      val results = new Array[Long](lastBucket + 1) //use scala.Long as it defaults to 0
+      val results    = new Array[Long](lastBucket + 1) //use scala.Long as it defaults to 0
 
       buckets.foreach { bucket =>
         val index = valueToBucketIndex(bucket.value)
@@ -25,12 +25,12 @@ trait HistogramToDistributionConverter {
 
       results.map(java.lang.Long.valueOf) //box values for Monitoring API
     }
-  }
 
   def histogramToDistribution(buckets: Seq[Bucket], count: Long): Distribution = {
     val values = histogramToDistributionValues(buckets)
 
-    Distribution.newBuilder()
+    Distribution
+      .newBuilder()
       .setBucketOptions(bucketOptions)
       .addAllBucketCounts(values.asJava)
       .setCount(count)
@@ -39,7 +39,7 @@ trait HistogramToDistributionConverter {
 }
 
 class ExponentialBucket(numFiniteBuckets: Int, growthFactor: Double, scale: Double) extends HistogramToDistributionConverter {
-  private val bucketCount = numFiniteBuckets + 2
+  private val bucketCount     = numFiniteBuckets + 2
   private val growthFactorLog = Math.log(growthFactor)
 
   protected def valueToBucketIndex(value: Long): Int = {
@@ -57,13 +57,15 @@ class ExponentialBucket(numFiniteBuckets: Int, growthFactor: Double, scale: Doub
   }
 
   val bucketOptions: BucketOptions = {
-    val exponentialBuckets = BucketOptions.Exponential.newBuilder()
+    val exponentialBuckets = BucketOptions.Exponential
+      .newBuilder()
       .setGrowthFactor(growthFactor)
       .setNumFiniteBuckets(numFiniteBuckets)
       .setScale(scale)
       .build()
 
-    BucketOptions.newBuilder()
+    BucketOptions
+      .newBuilder()
       .setExponentialBuckets(exponentialBuckets)
       .build()
   }
@@ -87,13 +89,15 @@ class LinearBucket(numFiniteBuckets: Int, width: Double, offset: Double) extends
   }
 
   val bucketOptions: BucketOptions = {
-    val linearBuckets = BucketOptions.Linear.newBuilder()
+    val linearBuckets = BucketOptions.Linear
+      .newBuilder()
       .setNumFiniteBuckets(numFiniteBuckets)
       .setWidth(width)
       .setOffset(offset)
       .build()
 
-    BucketOptions.newBuilder()
+    BucketOptions
+      .newBuilder()
       .setLinearBuckets(linearBuckets)
       .build()
   }
