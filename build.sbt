@@ -8,13 +8,17 @@ val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
 
 ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.8")
 
-lazy val `kamon-stackdriver` = project
+lazy val `kamon-stackdriver-root` = (project in file("."))
+  .settings(noPublishing)
+  .aggregate(`kamon-stackdriver`, `kamon-logback-stackdriver`)
+
+val `kamon-stackdriver` = project
   .settings(
     libraryDependencies ++=
       compileScope(kamon, googleMonitoring, googleTracing) ++ testScope(logbackClassic, kamonTestKit, scalatest)
   )
 
-lazy val `kamon-logback-stackdriver` = project
+val `kamon-logback-stackdriver` = project
   .settings(
     libraryDependencies ++= compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++ testScope(sprayJson, kamonTestKit, scalatest)
   )
