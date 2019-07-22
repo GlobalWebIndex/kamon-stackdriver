@@ -1,22 +1,11 @@
-import Dependencies._
+val kamon            = "io.kamon"         %% "kamon-core"             % "1.1.6"
+val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "1.1.1"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.83.0"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.101.0-beta"
 
-lazy val root = (project in file(".")).settings(
-  inThisBuild(
-    List(
-      organization := "nl.markvandertol",
-      scalaVersion := "2.12.8",
-      version := "0.1.0-SNAPSHOT"
-    )
-  ),
-  name := "kamon-stackdriver",
-  crossScalaVersions := Seq("2.12.6", "2.11.12", "2.10.7"),
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-  libraryDependencies ++= List(
-    kamon,
-    googleMonitoring,
-    googleTracing,
-    logback,
-    kamonTestKit % Test,
-    scalatest    % Test
+lazy val root = (project in file("."))
+  .settings(
+    name := "kamon-stackdriver",
+    libraryDependencies ++=
+      compileScope(kamon, googleMonitoring, googleTracing) ++ testScope(logbackClassic, kamonTestKit, scalatest)
   )
-)

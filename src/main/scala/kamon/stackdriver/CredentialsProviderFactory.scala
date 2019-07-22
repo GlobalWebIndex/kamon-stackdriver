@@ -6,7 +6,7 @@ import com.google.api.gax.core.{CredentialsProvider, FixedCredentialsProvider}
 import com.google.auth.oauth2.GoogleCredentials
 import com.typesafe.config.Config
 
-private[kamonstackdriver] object CredentialsProviderFactory {
+private[stackdriver] object CredentialsProviderFactory {
   def fromConfig(config: Config): CredentialsProvider = {
     val method = config.getString("auth.method")
     method match {
