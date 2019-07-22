@@ -34,9 +34,9 @@ class SpanIdentityProvider extends IdentityProvider {
 
     def from(bytes: Array[Byte]): Identifier = Try {
       val buffer = ByteBuffer.wrap(bytes)
-      val identifierLong = buffer.getLong
-
-      Identifier(HexCodec.toLowerHex(identifierLong), bytes)
+      val identifierLong1 = buffer.getLong
+      val identifierLong2 = buffer.getLong
+      Identifier(HexCodec.toLowerHex(identifierLong1) + HexCodec.toLowerHex(identifierLong2), bytes)
     } getOrElse (IdentityProvider.NoIdentifier)
   }
 
@@ -44,4 +44,3 @@ class SpanIdentityProvider extends IdentityProvider {
 
   def spanIdGenerator(): Generator = IdentityProvider.Default().spanIdGenerator()
 }
-

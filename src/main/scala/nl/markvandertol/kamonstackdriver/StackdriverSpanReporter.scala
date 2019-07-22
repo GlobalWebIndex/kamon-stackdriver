@@ -2,31 +2,34 @@ package nl.markvandertol.kamonstackdriver
 
 import java.nio.ByteBuffer
 
+import com.google.cloud.ServiceOptions
 import com.google.cloud.trace.v1.{ TraceServiceClient, TraceServiceSettings }
 import com.google.devtools.cloudtrace.v1.{ PatchTracesRequest, Trace, TraceSpan, Traces }
-import com.google.protobuf.Timestamp
 import com.typesafe.config.Config
-import kamon.{ Kamon, SpanReporter }
 import kamon.trace.IdentityProvider.Identifier
 import kamon.trace.Span
 import kamon.trace.Span.TagValue
 import kamon.util.CallingThreadExecutionContext
+import kamon.{ Kamon, SpanReporter }
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.Set
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success, Try }
 
 class StackdriverSpanReporter extends SpanReporter {
   private val logger = LoggerFactory.getLogger(getClass)
+
   private implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
   private var projectId: String = _
   private var client: TraceServiceClient = _
+  private var skipOperationNames: Set[String] = Set.empty
 
   def reportSpans(spans: Seq[Span.FinishedSpan]): Unit = {
-    if (spans.nonEmpty) {
-      val convertedSpans = convertSpans(spans)
+    val convertedSpans = convertSpans(spans)
+    if (convertedSpans.nonEmpty) {
 
       val traces = Traces.newBuilder()
         .addAllTraces(convertedSpans.asJava)
@@ -40,7 +43,8 @@ class StackdriverSpanReporter extends SpanReporter {
     val config = globalConfig.getConfig(configPrefix)
     closeClient()
 
-    projectId = config.getString("span.google-project-id")
+    projectId = Option(config.getString("span.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId())
+    skipOperationNames = config.getStringList("span.skip-operation-names").asScala.toSet
 
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
 
@@ -49,7 +53,8 @@ class StackdriverSpanReporter extends SpanReporter {
     client = TraceServiceClient.create(settings.build())
   }
 
-  private def closeClient(): Unit = {
+  @SuppressWarnings(Array("NullAssignment"))
+  private def closeClient(): Unit =
     Try {
       if (!(client eq null)) {
         client.close()
@@ -58,7 +63,6 @@ class StackdriverSpanReporter extends SpanReporter {
     }.failed.foreach { error =>
       logger.error("Failed to close TraceServiceClient", error)
     }
-  }
 
   private def writeTraces(traces: Traces): Unit = {
     val request = PatchTracesRequest.newBuilder()
@@ -73,7 +77,7 @@ class StackdriverSpanReporter extends SpanReporter {
   }
 
   private def convertSpans(spans: Seq[Span.FinishedSpan]): Seq[Trace] = {
-    val convertedSpansWithTraceId = spans.map(convertSpan)
+    val convertedSpansWithTraceId = spans.filterNot(finishedSpan => skipOperationNames(finishedSpan.operationName)).map(convertSpan)
     val convertedSpansPerTraceId = convertedSpansWithTraceId.groupBy(_._1)
     convertedSpansPerTraceId.map {
       case (traceId, convertedSpans) =>
@@ -100,13 +104,12 @@ class StackdriverSpanReporter extends SpanReporter {
     (traceID, traceSpan.build())
   }
 
-  private def tagsToLabels(tags: Map[String, TagValue]): Map[String, String] = {
+  private def tagsToLabels(tags: Map[String, TagValue]): Map[String, String] =
     tags.map {
       case (key, value: TagValue.Boolean) => (key, value.text)
       case (key, value: TagValue.Number) => (key, value.number.toString)
       case (key, value: TagValue.String) => (key, value.string)
     }
-  }
 
   private def identifierToLong(identifier: Identifier): Option[Long] = {
     val firstBytes = identifier.bytes.take(8)
@@ -118,15 +121,12 @@ class StackdriverSpanReporter extends SpanReporter {
     }
   }
 
-  def start(): Unit = {
+  def start(): Unit =
     configure(Kamon.config())
-  }
 
-  def stop(): Unit = {
+  def stop(): Unit =
     closeClient()
-  }
 
-  def reconfigure(config: Config): Unit = {
+  def reconfigure(config: Config): Unit =
     configure(config)
-  }
 }

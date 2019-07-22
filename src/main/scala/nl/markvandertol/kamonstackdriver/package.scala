@@ -7,12 +7,10 @@ import com.google.api.core.ApiFuture
 import com.google.protobuf.Timestamp
 
 import scala.concurrent.{ Future, Promise }
-import scala.language.implicitConversions
 import scala.util.Try
 
 package object kamonstackdriver {
-
-  private[kamonstackdriver] val configPrefix = "kamon.kamonstackdriver"
+  private[kamonstackdriver] val configPrefix = "kamon.stackdriver"
 
   private[kamonstackdriver] implicit def apiFutureToFuture[T](future: ApiFuture[T]): Future[T] = {
     val executor = new Executor {

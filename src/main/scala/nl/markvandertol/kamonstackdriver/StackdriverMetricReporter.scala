@@ -1,13 +1,16 @@
 package nl.markvandertol.kamonstackdriver
 
+import java.util
+
 import com.google.api.MetricDescriptor.MetricKind
 import com.google.api.{ Metric, MonitoredResource }
+import com.google.cloud.ServiceOptions
 import com.google.cloud.monitoring.v3.{ MetricServiceClient, MetricServiceSettings }
-import com.google.monitoring.v3.{ CreateTimeSeriesRequest, Point, ProjectName, TimeInterval, TimeSeries, TypedValue }
+import com.google.monitoring.v3._
 import com.typesafe.config.Config
-import kamon.{ Kamon, MetricReporter }
 import kamon.metric.{ MetricDistribution, MetricValue, PeriodSnapshot }
 import kamon.util.CallingThreadExecutionContext
+import kamon.{ Kamon, MetricReporter }
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -18,7 +21,8 @@ class StackdriverMetricReporter extends MetricReporter {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val maxTimeseriesPerRequest = 200
+  private val maxTimeseriesPerRequest = 100
+
   private implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
   private var client: MetricServiceClient = _
@@ -70,6 +74,17 @@ class StackdriverMetricReporter extends MetricReporter {
     }
   }
 
+  private[this] val sanitizationRegexp = """[^\w]""".r
+
+  private[this] def sanitizeTags(tags: kamon.Tags): util.Map[String, String] = {
+    val res = new util.HashMap[String, String]()
+    tags.foreach {
+      case (key, value) =>
+        res.put(sanitizationRegexp.replaceAllIn(key, "_"), value)
+    }
+    res
+  }
+
   private def newTimeSeries(name: String, tags: kamon.Tags, typedValue: TypedValue, timeInterval: TimeInterval) = {
     val point = Point.newBuilder()
       .setValue(typedValue)
@@ -79,7 +94,7 @@ class StackdriverMetricReporter extends MetricReporter {
     val fullMetricType = "custom.googleapis.com/kamon/" + name.replace('.', '/')
     val metric = Metric.newBuilder()
       .setType(fullMetricType)
-      .putAllLabels(tags.asJava)
+      .putAllLabels(sanitizeTags(tags))
       .build()
 
     TimeSeries.newBuilder()
@@ -129,13 +144,12 @@ class StackdriverMetricReporter extends MetricReporter {
     val config = globalConfig.getConfig(configPrefix)
     closeClient()
 
+    configureDistributionBuckets(config.getConfig("metric.distribution"))
+    readResource(config.getConfig("metric.resource"))
+
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
 
-    projectId = config.getString("metric.google-project-id")
-
-    configureDistributionBuckets(config.getConfig("metric.distribution"))
-
-    readResource(config.getConfig("metric.resource"))
+    projectId = Option(config.getString("metric.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId())
 
     val settings = MetricServiceSettings.newBuilder()
     settings.setCredentialsProvider(credentialsProvider)
@@ -143,7 +157,8 @@ class StackdriverMetricReporter extends MetricReporter {
     client = MetricServiceClient.create(settings.build())
   }
 
-  private def closeClient(): Unit = {
+  @SuppressWarnings(Array("NullAssignment"))
+  private def closeClient(): Unit =
     Try {
       if (!(client eq null)) {
         client.close()
@@ -152,17 +167,13 @@ class StackdriverMetricReporter extends MetricReporter {
     }.failed.foreach { error =>
       logger.error("Failed to close MetricServiceClient", error)
     }
-  }
 
-  def start(): Unit = {
+  def start(): Unit =
     configure(Kamon.config())
-  }
 
-  def stop(): Unit = {
+  def stop(): Unit =
     closeClient()
-  }
 
-  def reconfigure(config: Config): Unit = {
+  def reconfigure(config: Config): Unit =
     configure(config)
-  }
 }

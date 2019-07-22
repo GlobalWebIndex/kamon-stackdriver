@@ -1,7 +1,5 @@
 package nl.markvandertol.kamonstackdriver
 
-import java.lang
-
 import com.google.api.Distribution
 import com.google.api.Distribution.BucketOptions
 import kamon.metric.Bucket
@@ -12,6 +10,7 @@ trait HistogramToDistributionConverter {
   protected def valueToBucketIndex(value: Long): Int
   def bucketOptions: BucketOptions
 
+  @SuppressWarnings(Array("TraversableLast"))
   def histogramToDistributionValues(buckets: Seq[Bucket]): Seq[java.lang.Long] = {
     if (buckets.isEmpty) {
       new Array[java.lang.Long](0)
@@ -24,7 +23,7 @@ trait HistogramToDistributionConverter {
         results(index) += bucket.frequency
       }
 
-      results.map(new lang.Long(_)) //box values for Monitoring API
+      results.map(java.lang.Long.valueOf) //box values for Monitoring API
     }
   }
 

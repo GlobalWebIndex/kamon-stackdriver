@@ -1,68 +1,53 @@
 package nl.markvandertol.kamonstackdriver
 
 import kamon.metric.Bucket
+import org.scalatest.{ FlatSpec, Matchers }
 
-class HistogramToDistributionConverterSpec extends org.specs2.mutable.Specification {
-  "ExponentialBucket" >> {
-    val sut = new ExponentialBucket(10, 1.5, 1.0)
+class HistogramToDistributionConverterSpec extends FlatSpec with Matchers {
 
-    "Put small values in the first bucket" >> {
-      val buckets = Vector(
-        TestBucket(0, 5))
+  val eb = new ExponentialBucket(10, 1.5, 1.0)
 
-      val expected = List(5L)
+  "ExponentialBucket" should "Put small values in the first bucket" in {
+    val buckets = Vector(TestBucket(0, 5))
+    val expected = List(5L)
 
-      sut.histogramToDistributionValues(buckets).toList must_== expected
-    }
-
-    "Put large values in the last bucket" >> {
-      val buckets = Vector(
-        TestBucket(100, 5))
-
-      val expected = Range(0, 11).map(_ => 0L) :+ 5L
-
-      sut.histogramToDistributionValues(buckets).toList must_== expected
-    }
-
-    "Correctly interpolate values into right bucket" >> {
-      val buckets = Vector(
-        TestBucket(35, 5))
-      val expected = List(0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 5)
-
-      sut.histogramToDistributionValues(buckets).toList must_== expected
-    }
+    eb.histogramToDistributionValues(buckets).toList shouldBe expected
   }
 
-  "LinearBucket" >> {
-    val sut = new LinearBucket(numFiniteBuckets = 10, width = 2.0, offset = 1.0)
+  it should "Put large values in the last bucket" in {
+    val buckets = Vector(TestBucket(100, 5))
+    val expected = Range(0, 11).map(_ => 0L) :+ 5L
 
-    "Put small values in the first bucket" >> {
-      val buckets = Vector(
-        TestBucket(0, 5))
+    eb.histogramToDistributionValues(buckets).toList shouldBe expected
+  }
 
-      val expected = List(5L)
+  it should "Correctly interpolate values into right bucket" in {
+    val buckets = Vector(TestBucket(35, 5))
+    val expected = List(0, 0, 0, 0, 0, 0, 0, 0, 0, 5)
 
-      sut.histogramToDistributionValues(buckets).toList must_== expected
-    }
+    eb.histogramToDistributionValues(buckets).toList shouldBe expected
+  }
 
-    "Put large values in the last bucket" >> {
-      val buckets = Vector(
-        TestBucket(25, 5))
+  val lb = new LinearBucket(numFiniteBuckets = 10, width = 2.0, offset = 1.0)
+  "LinearBucket" should "Put small values in the first bucket" in {
+    val buckets = Vector(TestBucket(0, 5))
+    val expected = List(5L)
 
-      val expected = Range(0, 11).map(_ => 0L) :+ 5L
+    lb.histogramToDistributionValues(buckets).toList shouldBe expected
+  }
 
-      sut.histogramToDistributionValues(buckets).toList must_== expected
-    }
+  it should "Put large values in the last bucket" in {
+    val buckets = Vector(TestBucket(25, 5))
+    val expected = Range(0, 11).map(_ => 0L) :+ 5L
 
-    "Correctly interpolate values into right bucket" >> {
-      val buckets = Vector(
-        TestBucket(5, 5))
-      val expected = List(0, 0, 0, 5)
+    lb.histogramToDistributionValues(buckets).toList shouldBe expected
+  }
 
-      sut.histogramToDistributionValues(buckets).toList must_== expected
-    }
+  it should "Correctly interpolate values into right bucket" in {
+    val buckets = Vector(TestBucket(5, 5))
+    val expected = List(0, 0, 0, 5)
+
+    lb.histogramToDistributionValues(buckets).toList shouldBe expected
   }
 }
 
