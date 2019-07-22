@@ -1,4 +1,4 @@
-package nl.markvandertol.kamonstackdriver
+package kamon.stackdriver
 
 import kamon.metric.Bucket
 import org.scalatest.{FlatSpec, Matchers}

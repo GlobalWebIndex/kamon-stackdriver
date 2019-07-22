@@ -1,4 +1,4 @@
-package nl.markvandertol
+package kamon
 
 import java.time.Instant
 import java.util.concurrent.Executor
@@ -9,10 +9,10 @@ import com.google.protobuf.Timestamp
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
-package object kamonstackdriver {
-  private[kamonstackdriver] val configPrefix = "kamon.stackdriver"
+package object stackdriver {
+  private[stackdriver] val configPrefix = "kamon.stackdriver"
 
-  private[kamonstackdriver] implicit def apiFutureToFuture[T](future: ApiFuture[T]): Future[T] = {
+  private[stackdriver] implicit def apiFutureToFuture[T](future: ApiFuture[T]): Future[T] = {
     val executor = new Executor {
       def execute(command: Runnable): Unit = command.run()
     }
@@ -25,7 +25,7 @@ package object kamonstackdriver {
     promise.future
   }
 
-  private[kamonstackdriver] def instantToTimestamp(instant: Instant): Timestamp =
+  private[stackdriver] def instantToTimestamp(instant: Instant): Timestamp =
     Timestamp
       .newBuilder()
       .setSeconds(instant.getEpochSecond)

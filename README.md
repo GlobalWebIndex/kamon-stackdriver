@@ -1,4 +1,4 @@
-#Kamon-Stackdriver
+# Kamon-Stackdriver
 
 Kamon-Stackdriver is a library to report metrics collected by [Kamon](https://github.com/kamon-io/Kamon) to
 [Google Stackdriver](https://cloud.google.com/stackdriver/). It supports both
@@ -10,9 +10,8 @@ Supported releases and dependencies are shown below.
 
 | kamon  | status | jdk  | scala            | google-cloud-monitoring | google-cloud-trace |
 |:------:|:------:|:----:|:----------------:|:----------------:|:----------------:|
-|  1.1.2 | unstable | 1.8+ | 2.10, 2.11, 2.12  | 0.46.0-beta | 0.46.0-beta
+|  1.1.2 | unstable | 1.8+ | 2.11, 2.12  | 1.83.0 | 0.101.0-beta
 
-This library isn't available in as a JAR in a repository at this phase.
 
 ### Kamon Configuration
 The following Kamon configuration is recommended:
@@ -28,14 +27,14 @@ kamon {
     tick-interval = 2 seconds
 
     # Make the identifiers compatible with what Stackdriver Trace expects.
-    identity-provider = "nl.markvandertol.kamonstackdriver.SpanIdentityProvider"
+    identity-provider = "kamon.stackdriver.SpanIdentityProvider"
   }
 }
 ```
 
 ### Library configuration
 
-See `reference.conf`. In all cases the `kamon.metric.resource` property has to be updated to reflect for what resource
+See `reference.conf`. In all cases the `kamon.stackdriver.metric.resource` property has to be updated to reflect for what resource
 you're collecting metrics.
 
 

@@ -1,4 +1,4 @@
-package nl.markvandertol.kamonstackdriver
+package kamon.stackdriver
 
 import java.nio.ByteBuffer
 import java.util.concurrent.ThreadLocalRandom

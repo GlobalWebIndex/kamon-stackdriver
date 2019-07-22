@@ -1,4 +1,4 @@
-package nl.markvandertol.kamonstackdriver
+package kamon.stackdriver
 
 import com.google.api.Distribution
 import com.google.api.Distribution.BucketOptions
