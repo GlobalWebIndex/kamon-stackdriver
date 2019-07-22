@@ -1,0 +1,25 @@
+clone:
+  git:
+    image: plugins/git
+    tags: true
+
+
+pipeline:
+  run-tests:
+    image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
+    commands:
+      - sbt -mem 3072 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
+    volumes:
+      - /var/lib/docker/sbt:/cache
+    when:
+      event: [pull_request]
+
+
+  publish-on-tag:
+    image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
+    commands:
+      - sbt -mem 3072 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+    volumes:
+      - /var/lib/docker/sbt:/cache
+    when:
+      event: tag
