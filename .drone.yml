@@ -8,7 +8,7 @@ pipeline:
   run-tests:
     image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
     commands:
-      - sbt -mem 3072 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
+      - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
     volumes:
       - /var/lib/docker/sbt:/cache
     when:
@@ -18,8 +18,20 @@ pipeline:
   publish-on-tag:
     image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
     commands:
-      - sbt -mem 3072 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+      - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
     volumes:
       - /var/lib/docker/sbt:/cache
+    secrets: [ bintray_user, bintray_pass ]
     when:
-      event: tag
+      event: [tag]
+
+  publish-on-master:
+    image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
+    commands:
+      - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+    volumes:
+      - /var/lib/docker/sbt:/cache
+    secrets: [ bintray_user, bintray_pass ]
+    when:
+      event: [push]
+      branch: master
