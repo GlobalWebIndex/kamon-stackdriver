@@ -6,12 +6,15 @@ Kamon-Stackdriver is a library to report metrics collected by [Kamon](https://gi
 
 ### Getting Started
 
-Supported releases and dependencies are shown below.
+Add `gwidx` Bintray repository and dependencies:
 
-| kamon  | status | jdk  | scala            | google-cloud-monitoring | google-cloud-trace |
-|:------:|:------:|:----:|:----------------:|:----------------:|:----------------:|
-|  1.1.2 | unstable | 1.8+ | 2.11, 2.12  | 1.83.0 | 0.101.0-beta
-
+```scala
+resolvers += Resolver.bintrayRepo("gwidx", "maven")
+libraryDependencies ++= Seq(
+  "io.kamon" %% "kamon-stackdriver"         % "0.1.0"
+  "io.kamon" %% "kamon-logback-stackdriver" % "0.1.0"
+)
+```
 
 ### Kamon Configuration
 The following Kamon configuration is recommended:
@@ -28,6 +31,29 @@ kamon {
 
     # Make the identifiers compatible with what Stackdriver Trace expects.
     identity-provider = "kamon.stackdriver.SpanIdentityProvider"
+  }
+}
+```
+
+### Logback encoder
+To configure Logback so it outputs messages in Stackdriver compatible logging format add to your `logback.xml` encoder:
+
+```xml
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="kamon.stackdriver.StackdriverEncoder">
+        </encoder>
+    </appender>
+```    
+If you want to output some additional information in each log entry you can also extend `StackdriverEncoder` and use it as Encoder in the configuration:
+
+```scala
+class MyStackdriverEncoder extends StackdriverEncoder {
+
+  override protected def extraData(event: ILoggingEvent): Map[String, String] = event match {
+    case ctxAware: ContextAwareLoggingEvent =>
+      val ctx = ctxAware.getContext
+      ???
+    case _ => Map("foo" -> "bar", "region" -> "europe-west1")
   }
 }
 ```
