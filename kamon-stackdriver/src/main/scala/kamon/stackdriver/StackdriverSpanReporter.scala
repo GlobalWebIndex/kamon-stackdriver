@@ -22,6 +22,7 @@ class StackdriverSpanReporter extends SpanReporter {
 
   private var projectId: String               = _
   private var client: TraceServiceClient      = _
+  private var projectName: String             = _
   private var skipOperationNames: Set[String] = Set.empty
 
   def reportSpans(kamonSpans: Seq[FinishedSpan]): Unit = {
@@ -40,6 +41,7 @@ class StackdriverSpanReporter extends SpanReporter {
 
     projectId = Option(config.getString("span.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId)
     skipOperationNames = config.getStringList("span.skip-operation-names").asScala.toSet
+    projectName = ProjectName.of(projectId).toString
 
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
 
@@ -77,8 +79,7 @@ class StackdriverSpanReporter extends SpanReporter {
   }
 
   private def writeSpans(spans: Seq[Span]): Unit = {
-    val projectName = ProjectName.of(projectId).toString
-    val request     = BatchWriteSpansRequest.newBuilder().setName(projectName).addAllSpans(spans.asJava).build()
+    val request = BatchWriteSpansRequest.newBuilder().setName(projectName).addAllSpans(spans.asJava).build()
     client.batchWriteSpansCallable().futureCall(request).onComplete {
       case Success(_) => // ok
       case Failure(e) => logger.error("Failed to upload traces", e)
@@ -87,8 +88,10 @@ class StackdriverSpanReporter extends SpanReporter {
 
   private def tagsToLabels(tags: Map[String, TagValue]): Map[String, AttributeValue] =
     tags.map {
-      case (key, value: TagValue.Boolean) =>
-        (key, AttributeValue.newBuilder().setBoolValue(value.text.toBoolean).build())
+      case (key, TagValue.True) =>
+        (key, AttributeValue.newBuilder().setBoolValue(true).build())
+      case (key, TagValue.False) =>
+        (key, AttributeValue.newBuilder().setBoolValue(false).build())
       case (key, value: TagValue.Number) =>
         (key, AttributeValue.newBuilder().setIntValue(value.number).build())
       case (key, value: TagValue.String) =>
