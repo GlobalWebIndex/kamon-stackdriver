@@ -1,6 +1,6 @@
 package kamon.stackdriver
 
-import kamon.metric.Bucket
+import kamon.metric.Distribution.Bucket
 import org.scalatest.{FlatSpec, Matchers}
 
 class HistogramToDistributionConverterSpec extends FlatSpec with Matchers {

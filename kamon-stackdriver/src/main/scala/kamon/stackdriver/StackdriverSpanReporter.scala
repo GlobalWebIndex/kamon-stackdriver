@@ -5,9 +5,11 @@ import com.google.cloud.trace.v2.{TraceServiceClient, TraceServiceSettings}
 import com.google.devtools.cloudtrace.v2.Span.Attributes
 import com.google.devtools.cloudtrace.v2._
 import com.typesafe.config.Config
-import kamon.trace.Span.{FinishedSpan, TagValue}
+import kamon.Kamon
+import kamon.module.SpanReporter
+import kamon.tag.{Tag, TagSet}
+import kamon.trace.Span.Finished
 import kamon.util.CallingThreadExecutionContext
-import kamon.{Kamon, SpanReporter}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -25,7 +27,7 @@ class StackdriverSpanReporter extends SpanReporter {
   private var projectName: String             = _
   private var skipOperationNames: Set[String] = Set.empty
 
-  def reportSpans(kamonSpans: Seq[FinishedSpan]): Unit = {
+  def reportSpans(kamonSpans: Seq[Finished]): Unit = {
     val spans =
       kamonSpans.collect {
         case span if !skipOperationNames.contains(span.operationName) =>
@@ -61,20 +63,19 @@ class StackdriverSpanReporter extends SpanReporter {
       logger.error("Failed to close TraceServiceClient", error)
     }
 
-  private def convertSpan(span: FinishedSpan): Span = span match {
-    case FinishedSpan(context, operationName, start, end, tags, _) =>
-      val traceId = context.traceID.string
-      val spanId  = context.spanID.string
+  private def convertSpan(span: Finished): Span = {
+      val traceId = span.trace.id.string
+      val spanId  = span.id.string
       val name    = SpanName.of(projectId, traceId, spanId).toString
       Span
         .newBuilder()
         .setName(name)
-        .setDisplayName(TruncatableString.newBuilder().setValue(operationName).build())
-        .setStartTime(instantToTimestamp(start))
-        .setEndTime(instantToTimestamp(end))
-        .setAttributes(Attributes.newBuilder().putAllAttributeMap(tagsToLabels(tags).asJava))
+        .setDisplayName(TruncatableString.newBuilder().setValue(span.operationName).build())
+        .setStartTime(instantToTimestamp(span.from))
+        .setEndTime(instantToTimestamp(span.to))
+        .setAttributes(Attributes.newBuilder().putAllAttributeMap(tagsToLabels(span.tags).asJava))
         .setSpanId(spanId)
-        .setParentSpanId(context.parentID.string)
+        .setParentSpanId(span.parentId.string)
         .build()
   }
 
@@ -86,17 +87,15 @@ class StackdriverSpanReporter extends SpanReporter {
     }
   }
 
-  private def tagsToLabels(tags: Map[String, TagValue]): Map[String, AttributeValue] =
-    tags.map {
-      case (key, TagValue.True) =>
-        (key, AttributeValue.newBuilder().setBoolValue(true).build())
-      case (key, TagValue.False) =>
-        (key, AttributeValue.newBuilder().setBoolValue(false).build())
-      case (key, value: TagValue.Number) =>
-        (key, AttributeValue.newBuilder().setIntValue(value.number).build())
-      case (key, value: TagValue.String) =>
-        (key, AttributeValue.newBuilder().setStringValue(TruncatableString.newBuilder().setValue(value.string)).build())
-    }
+  private def tagsToLabels(tags: TagSet): Map[String, AttributeValue] =
+    tags.all().map {
+      case t: Tag.Boolean =>
+        (t.key, AttributeValue.newBuilder().setBoolValue(t.value).build())
+      case t: Tag.Long =>
+        (t.key, AttributeValue.newBuilder().setIntValue(t.value).build())
+      case t: Tag.String =>
+        (t.key, AttributeValue.newBuilder().setStringValue(TruncatableString.newBuilder().setValue(t.value)).build())
+    }.toMap
 
   def start(): Unit =
     configure(Kamon.config())

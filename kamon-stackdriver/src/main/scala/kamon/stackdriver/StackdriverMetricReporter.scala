@@ -8,9 +8,12 @@ import com.google.cloud.ServiceOptions
 import com.google.cloud.monitoring.v3.{MetricServiceClient, MetricServiceSettings}
 import com.google.monitoring.v3._
 import com.typesafe.config.Config
-import kamon.metric.{MetricDistribution, MetricValue, PeriodSnapshot}
+import kamon.Kamon
+import kamon.metric.MetricSnapshot.{Distributions, Values}
+import kamon.metric.PeriodSnapshot
+import kamon.module.MetricReporter
+import kamon.tag.{Tag, TagSet}
 import kamon.util.CallingThreadExecutionContext
-import kamon.{Kamon, MetricReporter}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -37,10 +40,10 @@ class StackdriverMetricReporter extends MetricReporter {
       .setEndTime(instantToTimestamp(snapshot.from))
       .build()
 
-    val histogramSeries = snapshot.metrics.histograms.map(v => histogram(v, interval))
-    val counterSeries   = snapshot.metrics.counters.map(v => counters(v, interval))
-    val gaugeSeries     = snapshot.metrics.gauges.map(v => counters(v, interval))
-    val minMaxSeries    = snapshot.metrics.rangeSamplers.map(v => histogram(v, interval))
+    val histogramSeries = snapshot.histograms.flatMap(v => histogram(v, interval))
+    val counterSeries   = snapshot.counters.flatMap(v => counters(v, interval))
+    val gaugeSeries     = snapshot.gauges.flatMap(v => gauges(v, interval))
+    val minMaxSeries    = snapshot.rangeSamplers.flatMap(v => histogram(v, interval))
 
     val allSeries: Seq[TimeSeries] = histogramSeries ++ counterSeries ++ gaugeSeries ++ minMaxSeries
 
@@ -83,16 +86,20 @@ class StackdriverMetricReporter extends MetricReporter {
 
   private[this] val sanitizationRegexp = """[^\w]""".r
 
-  private[this] def sanitizeTags(tags: kamon.Tags): util.Map[String, String] = {
+  private[this] def sanitizeTags(tags: TagSet): util.Map[String, String] = {
     val res = new util.HashMap[String, String]()
-    tags.foreach {
-      case (key, value) =>
-        res.put(sanitizationRegexp.replaceAllIn(key, "_"), value)
+    tags.all.foreach {
+      case t: Tag.Boolean =>
+        res.put(sanitizationRegexp.replaceAllIn(t.key, "_"), t.value.toString)
+      case t: Tag.Long =>
+        res.put(sanitizationRegexp.replaceAllIn(t.key, "_"), t.value.toString)
+      case t: Tag.String =>
+        res.put(sanitizationRegexp.replaceAllIn(t.key, "_"), t.value)
     }
     res
   }
 
-  private def newTimeSeries(name: String, tags: kamon.Tags, typedValue: TypedValue, timeInterval: TimeInterval) = {
+  private def newTimeSeries(name: String, tags: TagSet, typedValue: TypedValue, timeInterval: TimeInterval) = {
     val point = Point
       .newBuilder()
       .setValue(typedValue)
@@ -115,23 +122,38 @@ class StackdriverMetricReporter extends MetricReporter {
       .build()
   }
 
-  def histogram(v: MetricDistribution, timeInterval: TimeInterval): TimeSeries = {
-    val distribution = histogramToDistributionConverter.histogramToDistribution(v.distribution.buckets, v.distribution.count)
+  def histogram(v: Distributions, timeInterval: TimeInterval): Seq[TimeSeries] = {
+    v.instruments.map{ i =>
+      val distribution = histogramToDistributionConverter.histogramToDistribution(i.value.buckets, i.value.count)
+      val typedValue = TypedValue
+        .newBuilder()
+        .setDistributionValue(distribution)
+        .build()
 
-    val typedValue = TypedValue
-      .newBuilder()
-      .setDistributionValue(distribution)
-      .build()
-    newTimeSeries(v.name, v.tags, typedValue, timeInterval)
+      newTimeSeries(v.name, i.tags, typedValue, timeInterval)
+    }
   }
 
-  def counters(v: MetricValue, timeInterval: TimeInterval): TimeSeries = {
-    val typedValue = TypedValue
-      .newBuilder()
-      .setInt64Value(v.value)
-      .build()
+  def counters(v: Values[scala.Long], timeInterval: TimeInterval): Seq[TimeSeries] = {
+    v.instruments.map { i =>
+      val typedValue = TypedValue
+        .newBuilder()
+        .setInt64Value(i.value)
+        .build()
 
-    newTimeSeries(v.name, v.tags, typedValue, timeInterval)
+      newTimeSeries(v.name, i.tags, typedValue, timeInterval)
+    }
+  }
+
+  def gauges(v: Values[scala.Double], timeInterval: TimeInterval): Seq[TimeSeries] = {
+    v.instruments.map { i =>
+      val typedValue = TypedValue
+        .newBuilder()
+        .setDoubleValue(i.value)
+        .build()
+
+      newTimeSeries(v.name, i.tags, typedValue, timeInterval)
+    }
   }
 
   private def configureDistributionBuckets(config: Config): Unit = {
