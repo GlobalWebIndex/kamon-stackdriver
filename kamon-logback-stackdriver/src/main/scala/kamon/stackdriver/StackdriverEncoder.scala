@@ -7,7 +7,7 @@ import ch.qos.logback.classic.pattern.{RootCauseFirstThrowableProxyConverter, Th
 import ch.qos.logback.classic.spi.{CallerData, ILoggingEvent}
 import ch.qos.logback.core.encoder.EncoderBase
 import com.google.cloud.ServiceOptions
-import kamon.logback.instrumentation.ContextAwareLoggingEvent
+import kamon.Kamon
 import kamon.trace.Span
 
 import scala.collection.JavaConverters._
@@ -125,13 +125,10 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
     }
   }
 
-  private[this] def traceInformation(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder =
-    event match {
-      case ctxAware: ContextAwareLoggingEvent =>
-        val ctx         = ctxAware.getContext
-        val currentSpan = ctx.get(Span.ContextKey)
-        val spanCtx     = currentSpan.context()
-        if (spanCtx.traceID.string.nonEmpty && spanCtx.spanID.string.nonEmpty) {
+  private[this] def traceInformation(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
+        val ctx         = Kamon.currentContext()
+        val span = ctx.get(Span.Key)
+        if (span.trace.id.string.nonEmpty && span.id.string.nonEmpty) {
           builder
             .encodeStringRaw(TraceIdFieldName)
             .`:`
@@ -139,13 +136,12 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
             .appendEncodedString("projects/")
             .appendEncodedString(projectId)
             .appendEncodedString("/traces/")
-            .appendEncodedString(spanCtx.traceID.string)
+            .appendEncodedString(span.trace.id.string)
             .endString()
             .`,`
-          builder.encodeStringRaw(SpanIdFieldName).`:`.encodeString(spanCtx.spanID.string).`,`
+          builder.encodeStringRaw(SpanIdFieldName).`:`.encodeString(span.id.string).`,`
         }
         builder
-      case _ => builder
     }
 
   @SuppressWarnings(Array("UnusedMethodParameter"))
