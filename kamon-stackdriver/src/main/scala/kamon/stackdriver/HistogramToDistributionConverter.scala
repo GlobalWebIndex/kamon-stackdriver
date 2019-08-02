@@ -2,7 +2,7 @@ package kamon.stackdriver
 
 import com.google.api.Distribution
 import com.google.api.Distribution.BucketOptions
-import kamon.metric.Bucket
+import kamon.metric.Distribution.Bucket
 
 import scala.collection.JavaConverters._
 

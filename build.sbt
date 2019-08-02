@@ -1,9 +1,9 @@
-val kamon            = "io.kamon"         %% "kamon-core"             % "1.1.6"
-val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "1.1.6"
-val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "1.0.7"
-val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.83.0"
-val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.83.0"
-val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.101.0-beta"
+val kamon            = "io.kamon"         %% "kamon-core"             % "2.0.0"
+val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "2.0.0"
+val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.0"
+val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.84.0"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.84.0"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.102.0-beta"
 val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
