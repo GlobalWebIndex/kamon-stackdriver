@@ -6,7 +6,7 @@ import com.google.devtools.cloudtrace.v2.Span.Attributes
 import com.google.devtools.cloudtrace.v2._
 import com.typesafe.config.Config
 import kamon.Kamon
-import kamon.module.SpanReporter
+import kamon.module.{Module, ModuleFactory, SpanReporter}
 import kamon.tag.{Tag, TagSet}
 import kamon.trace.Span.Finished
 import kamon.util.CallingThreadExecutionContext
@@ -108,4 +108,11 @@ class StackdriverSpanReporter extends SpanReporter {
 
   def reconfigure(config: Config): Unit =
     configure(config)
+}
+
+object StackdriverSpanReporter {
+  class Factory extends ModuleFactory {
+    override def create(settings: ModuleFactory.Settings): Module =
+      new StackdriverSpanReporter()
+  }
 }
