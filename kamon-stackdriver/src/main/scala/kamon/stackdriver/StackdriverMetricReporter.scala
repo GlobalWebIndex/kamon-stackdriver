@@ -11,7 +11,7 @@ import com.typesafe.config.Config
 import kamon.Kamon
 import kamon.metric.MetricSnapshot.{Distributions, Values}
 import kamon.metric.PeriodSnapshot
-import kamon.module.MetricReporter
+import kamon.module.{MetricReporter, Module, ModuleFactory}
 import kamon.tag.{Tag, TagSet}
 import kamon.util.CallingThreadExecutionContext
 import org.slf4j.LoggerFactory
@@ -208,4 +208,11 @@ class StackdriverMetricReporter extends MetricReporter {
 
   def reconfigure(config: Config): Unit =
     configure(config)
+}
+
+object StackdriverMetricReporter {
+  class Factory extends ModuleFactory {
+    override def create(settings: ModuleFactory.Settings): Module =
+      new StackdriverMetricReporter()
+  }
 }
