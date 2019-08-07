@@ -45,7 +45,7 @@ class StackdriverSpanReporter extends SpanReporter {
     projectId = Option(config.getString("span.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId)
     skipOperationNames = config.getStringList("span.skip-operation-names").asScala.toSet
     projectName = ProjectName.of(projectId).toString
-    mappings = config.getObject("tags.mappings").unwrapped().asScala.mapValues(_.toString).toMap.withDefault(identity)
+    mappings = config.getObject("span.tags.mappings").unwrapped().asScala.mapValues(_.toString).toMap.withDefault(identity)
 
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
 
