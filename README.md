@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
 
 ### Kamon Configuration
 The following Kamon configuration is recommended:
-```
+```hocon
 kamon {
   metric {
     # Stackdriver accepts at most a tick every minute
@@ -63,6 +63,21 @@ class MyStackdriverEncoder extends StackdriverEncoder {
 See `reference.conf`. In all cases the `kamon.stackdriver.metric.resource` property has to be updated to reflect for what resource
 you're collecting metrics.
 
+## Tracing labels mappings
+
+Stackdriver tracing treats some the labels specially, a mapping can be set in the configuration. Default mappings are shown below. 
+More information you can find in [Google Stackdriver TraceSpan](https://cloud.google.com/trace/docs/reference/v1/rest/v1/projects.traces#TraceSpan) documentation.
+
+```hocon
+kamon.stackdrvier.span {
+  tags {
+    mappings {
+      "http.method" = "/http/method"
+      "http.status_code" = "/http/status_code"
+    }
+  }
+}
+```
 
 ## License
 
