@@ -30,21 +30,20 @@ class StackdriverEncoderTest extends FlatSpec with Matchers {
         Array("bar")
       )
     }
-      val str    = new String(encoder.encode(event))
-      val json   = str.parseJson.asJsObject
-      val fields = json.fields
+    val str    = new String(encoder.encode(event))
+    val json   = str.parseJson.asJsObject
+    val fields = json.fields
 
-      withClue(json.prettyPrint) {
-        fields("logging.googleapis.com/sourceLocation") shouldBe a[JsObject]
-        fields("logging.googleapis.com/sourceLocation").asJsObject.fields.keySet shouldBe Set("file", "function", "line")
-        fields("logging.googleapis.com/spanId").convertTo[String] shouldBe span.id.string
-        fields("logging.googleapis.com/trace").convertTo[String] should endWith(span.trace.id.string)
-        fields("message").convertTo[String] should not be empty
-        fields("severity").convertTo[String] shouldBe "INFO"
-        fields("timestamp") shouldBe a[JsObject]
-        fields("timestamp").asJsObject.fields.keySet shouldBe Set("seconds", "nanos")
-      }
-    
+    withClue(json.prettyPrint) {
+      fields("logging.googleapis.com/sourceLocation") shouldBe a[JsObject]
+      fields("logging.googleapis.com/sourceLocation").asJsObject.fields.keySet shouldBe Set("file", "function", "line")
+      fields("logging.googleapis.com/spanId").convertTo[String] shouldBe span.id.string
+      fields("logging.googleapis.com/trace").convertTo[String] should endWith(span.trace.id.string)
+      fields("message").convertTo[String] should not be empty
+      fields("severity").convertTo[String] shouldBe "INFO"
+      fields("timestamp") shouldBe a[JsObject]
+      fields("timestamp").asJsObject.fields.keySet shouldBe Set("seconds", "nanos")
+    }
 
   }
 
