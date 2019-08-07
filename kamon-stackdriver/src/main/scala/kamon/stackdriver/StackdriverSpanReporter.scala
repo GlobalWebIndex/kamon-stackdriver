@@ -24,6 +24,7 @@ class StackdriverSpanReporter extends SpanReporter {
   private var client: TraceServiceClient      = _
   private var projectName: String             = _
   private var skipOperationNames: Set[String] = Set.empty
+  private var mappings: Map[String, String]   = Map.empty
 
   def reportSpans(kamonSpans: Seq[FinishedSpan]): Unit = {
     val spans =
@@ -42,6 +43,7 @@ class StackdriverSpanReporter extends SpanReporter {
     projectId = Option(config.getString("span.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId)
     skipOperationNames = config.getStringList("span.skip-operation-names").asScala.toSet
     projectName = ProjectName.of(projectId).toString
+    mappings = config.getObject("span.tags.mappings").unwrapped().asScala.mapValues(_.toString).toMap.withDefault(identity)
 
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
 
@@ -89,13 +91,13 @@ class StackdriverSpanReporter extends SpanReporter {
   private def tagsToLabels(tags: Map[String, TagValue]): Map[String, AttributeValue] =
     tags.map {
       case (key, TagValue.True) =>
-        (key, AttributeValue.newBuilder().setBoolValue(true).build())
+        (mappings(key), AttributeValue.newBuilder().setBoolValue(true).build())
       case (key, TagValue.False) =>
-        (key, AttributeValue.newBuilder().setBoolValue(false).build())
+        (mappings(key), AttributeValue.newBuilder().setBoolValue(false).build())
       case (key, value: TagValue.Number) =>
-        (key, AttributeValue.newBuilder().setIntValue(value.number).build())
+        (mappings(key), AttributeValue.newBuilder().setIntValue(value.number).build())
       case (key, value: TagValue.String) =>
-        (key, AttributeValue.newBuilder().setStringValue(TruncatableString.newBuilder().setValue(value.string)).build())
+        (mappings(key), AttributeValue.newBuilder().setStringValue(TruncatableString.newBuilder().setValue(value.string)).build())
     }
 
   def start(): Unit =
