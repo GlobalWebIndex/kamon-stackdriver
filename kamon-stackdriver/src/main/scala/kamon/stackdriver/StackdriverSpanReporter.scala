@@ -66,19 +66,19 @@ class StackdriverSpanReporter extends SpanReporter {
     }
 
   private def convertSpan(span: Finished): Span = {
-      val traceId = span.trace.id.string
-      val spanId  = span.id.string
-      val name    = SpanName.of(projectId, traceId, spanId).toString
-      Span
-        .newBuilder()
-        .setName(name)
-        .setDisplayName(TruncatableString.newBuilder().setValue(span.operationName).build())
-        .setStartTime(instantToTimestamp(span.from))
-        .setEndTime(instantToTimestamp(span.to))
-        .setAttributes(Attributes.newBuilder().putAllAttributeMap(tagsToLabels(span.tags).asJava))
-        .setSpanId(spanId)
-        .setParentSpanId(span.parentId.string)
-        .build()
+    val traceId = span.trace.id.string
+    val spanId  = span.id.string
+    val name    = SpanName.of(projectId, traceId, spanId).toString
+    Span
+      .newBuilder()
+      .setName(name)
+      .setDisplayName(TruncatableString.newBuilder().setValue(span.operationName).build())
+      .setStartTime(instantToTimestamp(span.from))
+      .setEndTime(instantToTimestamp(span.to))
+      .setAttributes(Attributes.newBuilder().putAllAttributeMap(tagsToLabels(span.tags).asJava))
+      .setSpanId(spanId)
+      .setParentSpanId(span.parentId.string)
+      .build()
   }
 
   private def writeSpans(spans: Seq[Span]): Unit = {
@@ -90,15 +90,17 @@ class StackdriverSpanReporter extends SpanReporter {
   }
 
   private def tagsToLabels(tags: TagSet): Map[String, AttributeValue] =
-    tags.all().map {
-      case t: Tag.Boolean =>
-        (mappings(t.key), AttributeValue.newBuilder().setBoolValue(t.value).build())
-      case t: Tag.Long =>
-        (mappings(t.key), AttributeValue.newBuilder().setIntValue(t.value).build())
-      case t: Tag.String =>
-        (mappings(t.key), AttributeValue.newBuilder().setStringValue(TruncatableString.newBuilder().setValue(t.value)).build())
-    }.toMap
-
+    tags
+      .all()
+      .map {
+        case t: Tag.Boolean =>
+          (mappings(t.key), AttributeValue.newBuilder().setBoolValue(t.value).build())
+        case t: Tag.Long =>
+          (mappings(t.key), AttributeValue.newBuilder().setIntValue(t.value).build())
+        case t: Tag.String =>
+          (mappings(t.key), AttributeValue.newBuilder().setStringValue(TruncatableString.newBuilder().setValue(t.value)).build())
+      }
+      .toMap
 
   def start(): Unit =
     configure(Kamon.config())
