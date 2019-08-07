@@ -1,36 +1,68 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
 clone:
-  git:
-    image: plugins/git
+  disable: true
+
+steps:
+- name: git
+  pull: if-not-exists
+  image: plugins/git
+  settings:
     tags: true
 
+- name: run-tests
+  pull: if-not-exists
+  image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
+  commands:
+  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
+  volumes:
+  - name: sbt-cache
+    path: /cache
+  when:
+    event:
+    - pull_request
 
-pipeline:
-  run-tests:
-    image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
-    commands:
-      - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
-    volumes:
-      - /var/lib/docker/sbt:/cache
-    when:
-      event: [pull_request]
+- name: publish-on-tag
+  pull: if-not-exists
+  image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
+  commands:
+  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+  environment:
+    BINTRAY_PASS:
+      from_secret: bintray_pass
+    BINTRAY_USER:
+      from_secret: bintray_user
+  volumes:
+  - name: sbt-cache
+    path: /cache
+  when:
+    event:
+    - tag
 
+- name: publish-on-branch
+  pull: if-not-exists
+  image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
+  commands:
+  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+  environment:
+    BINTRAY_PASS:
+      from_secret: bintray_pass
+    BINTRAY_USER:
+      from_secret: bintray_user
+  volumes:
+  - name: sbt-cache
+    path: /cache
+  when:
+    event:
+    - push
 
-  publish-on-tag:
-    image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
-    commands:
-      - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
-    volumes:
-      - /var/lib/docker/sbt:/cache
-    secrets: [ bintray_user, bintray_pass ]
-    when:
-      event: [tag]
-
-  publish-on-master:
-    image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
-    commands:
-      - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
-    volumes:
-      - /var/lib/docker/sbt:/cache
-    secrets: [ bintray_user, bintray_pass ]
-    when:
-      event: [push]
+volumes:
+- name: sbt-cache
+  host:
+    path: /var/lib/docker/sbt
