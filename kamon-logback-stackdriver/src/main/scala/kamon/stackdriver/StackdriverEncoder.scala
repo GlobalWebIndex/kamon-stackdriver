@@ -126,23 +126,23 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
   }
 
   private[this] def traceInformation(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
-        val ctx         = Kamon.currentContext()
-        val span = ctx.get(Span.Key)
-        if (span.trace.id.string.nonEmpty && span.id.string.nonEmpty) {
-          builder
-            .encodeStringRaw(TraceIdFieldName)
-            .`:`
-            .startString()
-            .appendEncodedString("projects/")
-            .appendEncodedString(projectId)
-            .appendEncodedString("/traces/")
-            .appendEncodedString(span.trace.id.string)
-            .endString()
-            .`,`
-          builder.encodeStringRaw(SpanIdFieldName).`:`.encodeString(span.id.string).`,`
-        }
-        builder
+    val ctx  = Kamon.currentContext()
+    val span = ctx.get(Span.Key)
+    if (span.trace.id.string.nonEmpty && span.id.string.nonEmpty) {
+      builder
+        .encodeStringRaw(TraceIdFieldName)
+        .`:`
+        .startString()
+        .appendEncodedString("projects/")
+        .appendEncodedString(projectId)
+        .appendEncodedString("/traces/")
+        .appendEncodedString(span.trace.id.string)
+        .endString()
+        .`,`
+      builder.encodeStringRaw(SpanIdFieldName).`:`.encodeString(span.id.string).`,`
     }
+    builder
+  }
 
   @SuppressWarnings(Array("UnusedMethodParameter"))
   protected def extraData(event: ILoggingEvent): Map[String, String] = Map.empty

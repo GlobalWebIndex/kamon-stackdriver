@@ -122,8 +122,8 @@ class StackdriverMetricReporter extends MetricReporter {
       .build()
   }
 
-  def histogram(v: Distributions, timeInterval: TimeInterval): Seq[TimeSeries] = {
-    v.instruments.map{ i =>
+  def histogram(v: Distributions, timeInterval: TimeInterval): Seq[TimeSeries] =
+    v.instruments.map { i =>
       val distribution = histogramToDistributionConverter.histogramToDistribution(i.value.buckets, i.value.count)
       val typedValue = TypedValue
         .newBuilder()
@@ -132,9 +132,8 @@ class StackdriverMetricReporter extends MetricReporter {
 
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
-  }
 
-  def counters(v: Values[scala.Long], timeInterval: TimeInterval): Seq[TimeSeries] = {
+  def counters(v: Values[scala.Long], timeInterval: TimeInterval): Seq[TimeSeries] =
     v.instruments.map { i =>
       val typedValue = TypedValue
         .newBuilder()
@@ -143,9 +142,8 @@ class StackdriverMetricReporter extends MetricReporter {
 
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
-  }
 
-  def gauges(v: Values[scala.Double], timeInterval: TimeInterval): Seq[TimeSeries] = {
+  def gauges(v: Values[scala.Double], timeInterval: TimeInterval): Seq[TimeSeries] =
     v.instruments.map { i =>
       val typedValue = TypedValue
         .newBuilder()
@@ -154,7 +152,6 @@ class StackdriverMetricReporter extends MetricReporter {
 
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
-  }
 
   private def configureDistributionBuckets(config: Config): Unit = {
     val bucketType = config.getString("bucket-type")

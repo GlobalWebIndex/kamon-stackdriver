@@ -51,8 +51,8 @@ private[stackdriver] final class JsonStringBuilder(val underlying: java.lang.Str
         case c    => c < 0x20
       }
     firstToBeEncoded() match {
-      case -1 ⇒ underlying.append(s)
-      case first ⇒
+      case -1 => underlying.append(s)
+      case first =>
         underlying.append(s, 0, first)
         @tailrec def appendChar(ix: Int): Unit =
           if (ix < s.length) {
