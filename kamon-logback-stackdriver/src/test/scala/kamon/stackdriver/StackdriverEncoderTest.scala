@@ -7,6 +7,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
 import spray.json._
+import kamon.trace.Trace.SamplingDecision
 
 class StackdriverEncoderTest extends FlatSpec with Matchers {
 
@@ -18,9 +19,9 @@ class StackdriverEncoderTest extends FlatSpec with Matchers {
   it should "format correctly log as json" in {
 
     Kamon.currentContext()
-    val span = Kamon.spanBuilder("operation").start()
-    Kamon.runWithSpan(span, finishSpan = true) {
-      val event: ILoggingEvent = new LoggingEvent(
+    val span = Kamon.spanBuilder("operation").samplingDecision(SamplingDecision.Sample).start()
+    val event: ILoggingEvent = Kamon.runWithSpan(span, finishSpan = true) {
+      new LoggingEvent(
         getClass.getName,
         LoggerFactory.getLogger(classOf[StackdriverEncoderTest]).asInstanceOf[ch.qos.logback.classic.Logger],
         Level.INFO,
@@ -28,22 +29,22 @@ class StackdriverEncoderTest extends FlatSpec with Matchers {
         new Exception("kaboom"),
         Array("bar")
       )
-
-      val str = new String(encoder.encode(event))
-      val json = str.parseJson.asJsObject
+    }
+      val str    = new String(encoder.encode(event))
+      val json   = str.parseJson.asJsObject
       val fields = json.fields
 
       withClue(json.prettyPrint) {
         fields("logging.googleapis.com/sourceLocation") shouldBe a[JsObject]
         fields("logging.googleapis.com/sourceLocation").asJsObject.fields.keySet shouldBe Set("file", "function", "line")
-        fields("logging.googleapis.com/spanId").convertTo[String] shouldBe Kamon.currentSpan().id.string
-        fields("logging.googleapis.com/trace").convertTo[String] should endWith(Kamon.currentSpan().trace.id.string)
+        fields("logging.googleapis.com/spanId").convertTo[String] shouldBe span.id.string
+        fields("logging.googleapis.com/trace").convertTo[String] should endWith(span.trace.id.string)
         fields("message").convertTo[String] should not be empty
         fields("severity").convertTo[String] shouldBe "INFO"
         fields("timestamp") shouldBe a[JsObject]
         fields("timestamp").asJsObject.fields.keySet shouldBe Set("seconds", "nanos")
       }
-    }
+    
 
   }
 
