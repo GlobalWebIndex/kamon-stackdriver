@@ -11,8 +11,8 @@ Add `gwidx` Bintray repository and dependencies:
 ```scala
 resolvers += Resolver.bintrayRepo("gwidx", "maven")
 libraryDependencies ++= Seq(
-  "io.kamon" %% "kamon-stackdriver"         % "0.1.0"
-  "io.kamon" %% "kamon-logback-stackdriver" % "0.1.0"
+  "io.kamon" %% "kamon-stackdriver"         % "<version>"
+  "io.kamon" %% "kamon-logback-stackdriver" % "<version>"
 )
 ```
 
