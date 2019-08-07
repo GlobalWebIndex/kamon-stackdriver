@@ -27,6 +27,8 @@ val `kamon-stackdriver` = project
   )
 
 val `kamon-logback-stackdriver` = project
+  .enablePlugins(JavaAgent)
+  .settings(instrumentationSettings)
   .settings(
     libraryDependencies ++= compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++ testScope(sprayJson, kamonTestKit, scalatest),
     bintrayOrganization := Some("gwidx"),
