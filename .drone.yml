@@ -6,7 +6,7 @@ clone:
 
 pipeline:
   run-tests:
-    image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
+    image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
     commands:
       - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
     volumes:
@@ -16,7 +16,7 @@ pipeline:
 
 
   publish-on-tag:
-    image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
+    image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
     commands:
       - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
     volumes:
@@ -26,7 +26,7 @@ pipeline:
       event: [tag]
 
   publish-on-master:
-    image: lustefaniak/sbt:graalvm_1.2.8_2.12.8_1.7
+    image: lustefaniak/sbt:graalvm_1.2.8_2.12.9_1.9
     commands:
       - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
     volumes:
@@ -34,4 +34,3 @@ pipeline:
     secrets: [ bintray_user, bintray_pass ]
     when:
       event: [push]
-      branch: master

@@ -1,9 +1,9 @@
 val kamon            = "io.kamon"         %% "kamon-core"             % "2.0.0"
 val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "2.0.0"
 val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.0"
-val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.84.0"
-val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.84.0"
-val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.102.0-beta"
+val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.85.0"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.85.0"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.103.0-beta"
 val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
@@ -22,7 +22,8 @@ val `kamon-stackdriver` = project
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
-    crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0")
+    scalaVersion := "2.12.9",
+    crossScalaVersions := Seq("2.11.12", "2.12.9", "2.13.0")
   )
 
 val `kamon-logback-stackdriver` = project
@@ -31,5 +32,6 @@ val `kamon-logback-stackdriver` = project
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
-    crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0")
+    scalaVersion := "2.12.9",
+    crossScalaVersions := Seq("2.11.12", "2.12.9", "2.13.0")
   )
