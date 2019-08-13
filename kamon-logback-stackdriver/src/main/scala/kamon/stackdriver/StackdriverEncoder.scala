@@ -8,7 +8,6 @@ import ch.qos.logback.classic.spi.{CallerData, ILoggingEvent}
 import ch.qos.logback.core.encoder.EncoderBase
 import kamon.instrumentation.context.HasContext
 import com.google.cloud.ServiceOptions
-import kamon.Kamon
 import kamon.trace.Span
 
 import scala.collection.JavaConverters._
