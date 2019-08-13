@@ -34,7 +34,9 @@ class StackdriverMetricReporter extends MetricReporter {
   private var histogramToDistributionConverter: HistogramToDistributionConverter = _
   private var resource: MonitoredResource                                        = _
 
-  def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
+  start()
+
+  override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
     val interval = TimeInterval
       .newBuilder()
       .setEndTime(instantToTimestamp(snapshot.from))
@@ -99,7 +101,7 @@ class StackdriverMetricReporter extends MetricReporter {
     res
   }
 
-  private def newTimeSeries(name: String, tags: TagSet, typedValue: TypedValue, timeInterval: TimeInterval) = {
+  private[this] def newTimeSeries(name: String, tags: TagSet, typedValue: TypedValue, timeInterval: TimeInterval) = {
     val point = Point
       .newBuilder()
       .setValue(typedValue)
@@ -122,7 +124,7 @@ class StackdriverMetricReporter extends MetricReporter {
       .build()
   }
 
-  def histogram(v: Distributions, timeInterval: TimeInterval): Seq[TimeSeries] =
+  private[this] def histogram(v: Distributions, timeInterval: TimeInterval): Seq[TimeSeries] =
     v.instruments.map { i =>
       val distribution = histogramToDistributionConverter.histogramToDistribution(i.value.buckets, i.value.count)
       val typedValue = TypedValue
@@ -133,7 +135,7 @@ class StackdriverMetricReporter extends MetricReporter {
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
 
-  def counters(v: Values[scala.Long], timeInterval: TimeInterval): Seq[TimeSeries] =
+  private[this] def counters(v: Values[scala.Long], timeInterval: TimeInterval): Seq[TimeSeries] =
     v.instruments.map { i =>
       val typedValue = TypedValue
         .newBuilder()
@@ -143,7 +145,7 @@ class StackdriverMetricReporter extends MetricReporter {
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
 
-  def gauges(v: Values[scala.Double], timeInterval: TimeInterval): Seq[TimeSeries] =
+  private[this] def gauges(v: Values[scala.Double], timeInterval: TimeInterval): Seq[TimeSeries] =
     v.instruments.map { i =>
       val typedValue = TypedValue
         .newBuilder()
@@ -153,7 +155,7 @@ class StackdriverMetricReporter extends MetricReporter {
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
 
-  private def configureDistributionBuckets(config: Config): Unit = {
+  private[this] def configureDistributionBuckets(config: Config): Unit = {
     val bucketType = config.getString("bucket-type")
     histogramToDistributionConverter = bucketType match {
       case "exponential" =>
@@ -169,7 +171,7 @@ class StackdriverMetricReporter extends MetricReporter {
     }
   }
 
-  private def configure(globalConfig: Config): Unit = {
+  private[this] def configure(globalConfig: Config): Unit = {
     val config = globalConfig.getConfig(configPrefix)
     closeClient()
 
@@ -187,7 +189,7 @@ class StackdriverMetricReporter extends MetricReporter {
   }
 
   @SuppressWarnings(Array("NullAssignment"))
-  private def closeClient(): Unit =
+  private[this] def closeClient(): Unit =
     Try {
       if (!(client eq null)) {
         client.close()
@@ -197,13 +199,13 @@ class StackdriverMetricReporter extends MetricReporter {
       logger.error("Failed to close MetricServiceClient", error)
     }
 
-  def start(): Unit =
+  private[this] def start(): Unit =
     configure(Kamon.config())
 
-  def stop(): Unit =
+  override def stop(): Unit =
     closeClient()
 
-  def reconfigure(config: Config): Unit =
+  override def reconfigure(config: Config): Unit =
     configure(config)
 }
 

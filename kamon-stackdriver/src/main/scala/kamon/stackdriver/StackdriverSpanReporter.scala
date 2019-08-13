@@ -18,17 +18,19 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 class StackdriverSpanReporter extends SpanReporter {
-  private val logger = LoggerFactory.getLogger(getClass)
+  private[this] val logger = LoggerFactory.getLogger(getClass)
 
-  private implicit def ec: ExecutionContext = CallingThreadExecutionContext
+  private[this] implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
-  private var projectId: String               = _
-  private var client: TraceServiceClient      = _
-  private var projectName: String             = _
-  private var skipOperationNames: Set[String] = Set.empty
-  private var mappings: Map[String, String]   = Map.empty
+  private[this] var projectId: String               = _
+  private[this] var client: TraceServiceClient      = _
+  private[this] var projectName: String             = _
+  private[this] var skipOperationNames: Set[String] = Set.empty
+  private[this] var mappings: Map[String, String]   = Map.empty
 
-  def reportSpans(kamonSpans: Seq[Finished]): Unit = {
+  start()
+
+  override def reportSpans(kamonSpans: Seq[Finished]): Unit = {
     val spans =
       kamonSpans.collect {
         case span if !skipOperationNames.contains(span.operationName) =>
@@ -38,7 +40,7 @@ class StackdriverSpanReporter extends SpanReporter {
       writeSpans(spans)
   }
 
-  private def configure(globalConfig: Config): Unit = {
+  private[this] def configure(globalConfig: Config): Unit = {
     val config = globalConfig.getConfig(configPrefix)
     closeClient()
 
@@ -55,7 +57,7 @@ class StackdriverSpanReporter extends SpanReporter {
   }
 
   @SuppressWarnings(Array("NullAssignment"))
-  private def closeClient(): Unit =
+  private[this] def closeClient(): Unit =
     Try {
       if (!(client eq null)) {
         client.close()
@@ -65,7 +67,7 @@ class StackdriverSpanReporter extends SpanReporter {
       logger.error("Failed to close TraceServiceClient", error)
     }
 
-  private def convertSpan(span: Finished): Span = {
+  private[this] def convertSpan(span: Finished): Span = {
     val traceId = span.trace.id.string
     val spanId  = span.id.string
     val name    = SpanName.of(projectId, traceId, spanId).toString
@@ -81,7 +83,7 @@ class StackdriverSpanReporter extends SpanReporter {
       .build()
   }
 
-  private def writeSpans(spans: Seq[Span]): Unit = {
+  private[this] def writeSpans(spans: Seq[Span]): Unit = {
     val request = BatchWriteSpansRequest.newBuilder().setName(projectName).addAllSpans(spans.asJava).build()
     client.batchWriteSpansCallable().futureCall(request).onComplete {
       case Success(_) => // ok
@@ -89,7 +91,7 @@ class StackdriverSpanReporter extends SpanReporter {
     }
   }
 
-  private def tagsToLabels(tags: TagSet): Map[String, AttributeValue] =
+  private[this] def tagsToLabels(tags: TagSet): Map[String, AttributeValue] =
     tags
       .all()
       .map {
@@ -102,13 +104,13 @@ class StackdriverSpanReporter extends SpanReporter {
       }
       .toMap
 
-  def start(): Unit =
+  private[this] def start(): Unit =
     configure(Kamon.config())
 
-  def stop(): Unit =
+  override def stop(): Unit =
     closeClient()
 
-  def reconfigure(config: Config): Unit =
+  override def reconfigure(config: Config): Unit =
     configure(config)
 }
 
