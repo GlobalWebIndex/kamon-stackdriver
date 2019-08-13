@@ -11,7 +11,7 @@ Add `gwidx` Bintray repository and dependencies:
 ```scala
 resolvers += Resolver.bintrayRepo("gwidx", "maven")
 libraryDependencies ++= Seq(
-  "io.kamon" %% "kamon-stackdriver"         % "<version>"
+  "io.kamon" %% "kamon-stackdriver"         % "<version>",
   "io.kamon" %% "kamon-logback-stackdriver" % "<version>"
 )
 ```
@@ -30,7 +30,7 @@ kamon {
     tick-interval = 2 seconds
 
     # Make the identifiers compatible with what Stackdriver Trace expects.
-    identity-provider = "kamon.stackdriver.SpanIdentityProvider"
+    identity-provider = "kamon.trace.IdentityProvider$DoubleSizeTraceID"
   }
 }
 ```
