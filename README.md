@@ -8,7 +8,7 @@ Kamon-Stackdriver is a library to report metrics collected by [Kamon](https://gi
 
 Add `gwidx` Bintray repository and dependencies:
 
-```scala
+```sbt
 resolvers += Resolver.bintrayRepo("gwidx", "maven")
 libraryDependencies ++= Seq(
   "io.kamon" %% "kamon-stackdriver"         % "<version>",
@@ -17,6 +17,16 @@ libraryDependencies ++= Seq(
 ```
 
 ### Kamon Configuration
+The following Kamon configuration is required:
+```hocon
+kamon {
+  trace {
+    # Make the identifiers compatible with what Stackdriver Trace expects.
+    identifier-scheme = double
+  }
+}
+```
+
 The following Kamon configuration is recommended:
 ```hocon
 kamon {
@@ -28,9 +38,6 @@ kamon {
     # The Stackdriver rate limit is at a 1000 requests per 100 seconds, so
     # sending frequently isn't a problem.
     tick-interval = 2 seconds
-
-    # Make the identifiers compatible with what Stackdriver Trace expects.
-    identity-provider = "kamon.trace.IdentityProvider$DoubleSizeTraceID"
   }
 }
 ```
