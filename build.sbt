@@ -1,10 +1,10 @@
 val kamon            = "io.kamon"         %% "kamon-core"             % "2.0.0"
 val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "2.0.0"
 val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.0"
-val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.0"
-val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.85.0"
-val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.85.0"
-val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.103.0-beta"
+val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.1"
+val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.87.0"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.87.0"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.105.0-beta"
 val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
@@ -17,9 +17,12 @@ lazy val `kamon-stackdriver-root` = (project in file("."))
   .aggregate(`kamon-stackdriver`, `kamon-logback-stackdriver`)
 
 val `kamon-stackdriver` = project
+  .configs(IntegrationTest)
   .settings(
-    libraryDependencies ++=
-      compileScope(kamon, googleMonitoring, googleTracing) ++ testScope(logbackClassic, kamonTestKit, scalatest),
+    Defaults.itSettings,
+    libraryDependencies ++= providedScope(kanela) ++
+      compileScope(kamon, googleMonitoring, googleTracing) ++
+      ittestScope(logbackClassic, kamonTestKit, scalatest),
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
@@ -27,15 +30,15 @@ val `kamon-stackdriver` = project
     crossScalaVersions := Seq("2.11.12", "2.12.9", "2.13.0")
   )
 
+def ittestScope(deps : sbt.ModuleID*) : scala.Seq[sbt.ModuleID] = deps.map(_ % "it,test")
+
 val `kamon-logback-stackdriver` = project
   .enablePlugins(JavaAgent)
   .settings(instrumentationSettings)
   .settings(
-    libraryDependencies ++= providedScope(kanela) ++ compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++ testScope(
-      sprayJson,
-      kamonTestKit,
-      scalatest
-    ),
+    libraryDependencies ++= providedScope(kanela) ++
+      compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++
+      testScope(sprayJson, kamonTestKit, scalatest),
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
