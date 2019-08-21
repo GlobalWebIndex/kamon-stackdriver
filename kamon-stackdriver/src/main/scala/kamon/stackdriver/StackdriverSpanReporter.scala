@@ -2,13 +2,14 @@ package kamon.stackdriver
 
 import com.google.cloud.ServiceOptions
 import com.google.cloud.trace.v2.{TraceServiceClient, TraceServiceSettings}
-import com.google.devtools.cloudtrace.v2.Span.Attributes
+import com.google.devtools.cloudtrace.v2.Span.{Attributes, Links}
 import com.google.devtools.cloudtrace.v2._
 import com.typesafe.config.Config
 import kamon.Kamon
 import kamon.module.{Module, ModuleFactory, SpanReporter}
 import kamon.tag.{Tag, TagSet}
 import kamon.trace.Span.Finished
+import kamon.trace.Span.Link.Kind.FollowsFrom
 import kamon.util.CallingThreadExecutionContext
 import org.slf4j.LoggerFactory
 
@@ -77,9 +78,26 @@ class StackdriverSpanReporter extends SpanReporter {
       .setDisplayName(TruncatableString.newBuilder().setValue(span.operationName).build())
       .setStartTime(instantToTimestamp(span.from))
       .setEndTime(instantToTimestamp(span.to))
-      .setAttributes(Attributes.newBuilder().putAllAttributeMap(tagsToLabels(span.tags).asJava))
+      .setLinks(linksToLinks(span.links))
+      .setAttributes(Attributes.newBuilder().putAllAttributeMap((tagsToLabels(span.tags) ++ tagsToLabels(span.metricTags)).asJava))
       .setSpanId(spanId)
       .setParentSpanId(span.parentId.string)
+      .build()
+  }
+
+  private[this] def linksToLinks(links: Seq[kamon.trace.Span.Link]): Links = {
+    Links
+      .newBuilder()
+      .addAllLink(links.map(linkToLink).asJava)
+      .build()
+  }
+
+  private[this] def linkToLink(link: kamon.trace.Span.Link): Span.Link = {
+    Span.Link
+      .newBuilder()
+      .setSpanId(link.spanId.string)
+      .setTraceId(link.trace.id.string)
+      .setType(link.kind match { case FollowsFrom => Span.Link.Type.PARENT_LINKED_SPAN })
       .build()
   }
 
