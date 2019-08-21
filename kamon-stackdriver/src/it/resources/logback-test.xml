@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <appender name="LOCAL" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d %-5level [%thread] %logger{0}: %msg%n</pattern>
+      <outputPatternAsHeader>true</outputPatternAsHeader>
+    </encoder>
+  </appender>
+
+  <root level="${ROOT_LOG_LEVEL:-INFO}">
+    <appender-ref ref="LOCAL" />
+  </root>
+
+
+</configuration>

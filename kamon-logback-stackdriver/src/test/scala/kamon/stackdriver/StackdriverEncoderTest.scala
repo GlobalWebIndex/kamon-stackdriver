@@ -18,7 +18,6 @@ class StackdriverEncoderTest extends FlatSpec with Matchers {
 
   it should "format correctly log as json" in {
 
-    Kamon.currentContext()
     val span = Kamon.spanBuilder("operation").samplingDecision(SamplingDecision.Sample).start()
     val event: ILoggingEvent = Kamon.runWithSpan(span, finishSpan = true) {
       new LoggingEvent(

@@ -23,11 +23,12 @@ class StackdriverSpanReporter extends SpanReporter {
 
   private[this] implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
-  private[this] var projectId: String               = _
-  private[this] var client: TraceServiceClient      = _
-  private[this] var projectName: String             = _
-  private[this] var skipOperationNames: Set[String] = Set.empty
-  private[this] var mappings: Map[String, String]   = Map.empty
+  private[stackdriver] var client: TraceServiceClient      = _
+  private[this] var projectId: String                      = _
+  private[this] var skipOperationNames: Set[String]        = Set.empty
+  private[this] var mappings: Map[String, String]          = Map.empty
+
+  private[this] def projectName: String             = ProjectName.format(projectId)
 
   start()
 
@@ -47,13 +48,13 @@ class StackdriverSpanReporter extends SpanReporter {
 
     projectId = Option(config.getString("span.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId)
     skipOperationNames = config.getStringList("span.skip-operation-names").asScala.toSet
-    projectName = ProjectName.of(projectId).toString
     mappings = config.getObject("span.tags.mappings").unwrapped().asScala.mapValues(_.toString).toMap.withDefault(identity)
 
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
+    val settings = TraceServiceSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
 
-    val settings = TraceServiceSettings.newBuilder()
-    settings.setCredentialsProvider(credentialsProvider)
     client = TraceServiceClient.create(settings.build())
   }
 
@@ -104,8 +105,8 @@ class StackdriverSpanReporter extends SpanReporter {
   private[this] def writeSpans(spans: Seq[Span]): Unit = {
     val request = BatchWriteSpansRequest.newBuilder().setName(projectName).addAllSpans(spans.asJava).build()
     client.batchWriteSpansCallable().futureCall(request).onComplete {
-      case Success(_) => // ok
-      case Failure(e) => logger.error("Failed to upload traces", e)
+      case Success(_) => logger.trace("Batch spans saved")
+      case Failure(e) => logger.error("Failed to upload spans", e)
     }
   }
 

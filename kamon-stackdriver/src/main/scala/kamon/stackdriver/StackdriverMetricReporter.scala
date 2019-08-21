@@ -28,11 +28,13 @@ class StackdriverMetricReporter extends MetricReporter {
 
   private implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
-  private var client: MetricServiceClient = _
+  private[stackdriver] var client: MetricServiceClient = _
 
   private var projectId: String                                                  = _
   private var histogramToDistributionConverter: HistogramToDistributionConverter = _
   private var resource: MonitoredResource                                        = _
+
+  private def projectName = ProjectName.format(projectId)
 
   start()
 
@@ -56,14 +58,14 @@ class StackdriverMetricReporter extends MetricReporter {
         val request = CreateTimeSeriesRequest
           .newBuilder()
           .addAllTimeSeries(series.asJava)
-          .setName(ProjectName.format(projectId))
+          .setName(projectName)
           .build()
         writeSeries(request)
       }
     }
   }
 
-  private[this] def readResource(config: Config): Unit = {
+  private[this] def buildResource(config: Config): MonitoredResource = {
     val resourceLabels = config
       .getConfig("labels")
       .entrySet()
@@ -73,7 +75,7 @@ class StackdriverMetricReporter extends MetricReporter {
       }
       .toMap
 
-    resource = MonitoredResource
+    MonitoredResource
       .newBuilder()
       .setType(config.getString("type"))
       .putAllLabels(resourceLabels.asJava)
@@ -82,7 +84,7 @@ class StackdriverMetricReporter extends MetricReporter {
 
   private[this] def writeSeries(timeSeriesRequest: CreateTimeSeriesRequest): Unit =
     client.createTimeSeriesCallable().futureCall(timeSeriesRequest).onComplete {
-      case Success(_) => //ok
+      case Success(_) => logger.trace("Time series created")
       case Failure(e) => logger.error("Failed to send TimeSeries", e)
     }
 
@@ -155,9 +157,9 @@ class StackdriverMetricReporter extends MetricReporter {
       newTimeSeries(v.name, i.tags, typedValue, timeInterval)
     }
 
-  private[this] def configureDistributionBuckets(config: Config): Unit = {
+  private[this] def buildDistributionBuckets(config: Config): HistogramToDistributionConverter = {
     val bucketType = config.getString("bucket-type")
-    histogramToDistributionConverter = bucketType match {
+    bucketType match {
       case "exponential" =>
         new ExponentialBucket(
           numFiniteBuckets = config.getInt("num-finite-buckets"),
@@ -172,18 +174,18 @@ class StackdriverMetricReporter extends MetricReporter {
   }
 
   private[this] def configure(globalConfig: Config): Unit = {
-    val config = globalConfig.getConfig(configPrefix)
+    val stackdriverConfig = globalConfig.getConfig(configPrefix)
     closeClient()
 
-    configureDistributionBuckets(config.getConfig("metric.distribution"))
-    readResource(config.getConfig("metric.resource"))
+    histogramToDistributionConverter = buildDistributionBuckets(stackdriverConfig.getConfig("metric.distribution"))
+    resource = buildResource(stackdriverConfig.getConfig("metric.resource"))
+    projectId = Option(stackdriverConfig.getString("metric.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId)
 
-    val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
+    val credentialsProvider = CredentialsProviderFactory.fromConfig(stackdriverConfig)
 
-    projectId = Option(config.getString("metric.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId())
-
-    val settings = MetricServiceSettings.newBuilder()
-    settings.setCredentialsProvider(credentialsProvider)
+    val settings = MetricServiceSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
 
     client = MetricServiceClient.create(settings.build())
   }
