@@ -4,7 +4,7 @@ val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.0"
 val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.1"
 val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.87.0"
 val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.87.0"
-val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.105.0-beta"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.107.0-beta"
 val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
