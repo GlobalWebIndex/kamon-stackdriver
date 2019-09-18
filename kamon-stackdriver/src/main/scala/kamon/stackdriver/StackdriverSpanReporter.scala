@@ -23,12 +23,12 @@ class StackdriverSpanReporter extends SpanReporter {
 
   private[this] implicit def ec: ExecutionContext = CallingThreadExecutionContext
 
-  private[stackdriver] var client: TraceServiceClient      = _
-  private[this] var projectId: String                      = _
-  private[this] var skipOperationNames: Set[String]        = Set.empty
-  private[this] var mappings: Map[String, String]          = Map.empty
+  private[stackdriver] var client: TraceServiceClient = _
+  private[this] var projectId: String                 = _
+  private[this] var skipOperationNames: Set[String]   = Set.empty
+  private[this] var mappings: Map[String, String]     = Map.empty
 
-  private[this] def projectName: String             = ProjectName.format(projectId)
+  private[this] def projectName: String = ProjectName.format(projectId)
 
   start()
 
@@ -86,21 +86,19 @@ class StackdriverSpanReporter extends SpanReporter {
       .build()
   }
 
-  private[this] def linksToLinks(links: Seq[kamon.trace.Span.Link]): Links = {
+  private[this] def linksToLinks(links: Seq[kamon.trace.Span.Link]): Links =
     Links
       .newBuilder()
       .addAllLink(links.map(linkToLink).asJava)
       .build()
-  }
 
-  private[this] def linkToLink(link: kamon.trace.Span.Link): Span.Link = {
+  private[this] def linkToLink(link: kamon.trace.Span.Link): Span.Link =
     Span.Link
       .newBuilder()
       .setSpanId(link.spanId.string)
       .setTraceId(link.trace.id.string)
       .setType(link.kind match { case FollowsFrom => Span.Link.Type.PARENT_LINKED_SPAN })
       .build()
-  }
 
   private[this] def writeSpans(spans: Seq[Span]): Unit = {
     val request = BatchWriteSpansRequest.newBuilder().setName(projectName).addAllSpans(spans.asJava).build()

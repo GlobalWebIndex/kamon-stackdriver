@@ -30,7 +30,7 @@ val `kamon-stackdriver` = project
     crossScalaVersions := Seq("2.11.12", "2.12.9", "2.13.0")
   )
 
-def ittestScope(deps : sbt.ModuleID*) : scala.Seq[sbt.ModuleID] = deps.map(_ % "it,test")
+def ittestScope(deps: sbt.ModuleID*): scala.Seq[sbt.ModuleID] = deps.map(_ % "it,test")
 
 val `kamon-logback-stackdriver` = project
   .enablePlugins(JavaAgent)
