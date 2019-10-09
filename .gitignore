@@ -1,3 +1,5 @@
 .idea/
 target/
-google-sercice-account.json
+google-service-account.json
+.metals
+.bloop
