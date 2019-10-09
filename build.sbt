@@ -3,7 +3,7 @@ val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "2.0.1"
 val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.1"
 val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.1"
 val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.89.0"
-val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.89.0"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.96.0"
 val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "0.107.0-beta"
 val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
 
