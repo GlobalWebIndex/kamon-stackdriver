@@ -22,6 +22,7 @@ val `kamon-stackdriver` = project
   .configs(IntegrationTest)
   .settings(
     Defaults.itSettings,
+    inConfig(IntegrationTest)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings),
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, googleMonitoring, googleTracing) ++
       ittestScope(logbackClassic, kamonTestKit, scalatest),

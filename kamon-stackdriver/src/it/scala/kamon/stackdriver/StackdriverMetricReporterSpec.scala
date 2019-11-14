@@ -17,11 +17,11 @@ class StackdriverMetricReporterSpec extends FlatSpec with Matchers with Eventual
   "StackdriverMetricReporter" should "report metric to GCP" in {
     val reporter = new StackdriverMetricReporter
 //given
-    val startedAt = Instant.now(Clock.systemUTC()).minusSeconds(10)
+    val startedAt                      = Instant.now(Clock.systemUTC()).minusSeconds(10)
     val stackdriverMetricReporterValue = 34
-    val tagSet = TagSet.builder().add("class", "StackdriverMetricReporter").build()
-    val gauge = MetricSnapshotBuilder.gauge("test", tagSet, stackdriverMetricReporterValue)
-    val snapshot = PeriodSnapshot (
+    val tagSet                         = TagSet.builder().add("class", "StackdriverMetricReporter").build()
+    val gauge                          = MetricSnapshotBuilder.gauge("test", tagSet, stackdriverMetricReporterValue)
+    val snapshot = PeriodSnapshot(
       from = startedAt,
       to = startedAt.plusSeconds(10),
       counters = Seq.empty,
@@ -40,8 +40,9 @@ class StackdriverMetricReporterSpec extends FlatSpec with Matchers with Eventual
       .build()
 
     val interval = TimeInterval.newBuilder().setEndTime(timestamp).build()
-    val view = ListTimeSeriesRequest.TimeSeriesView.FULL
-    val request = ListTimeSeriesRequest.newBuilder()
+    val view     = ListTimeSeriesRequest.TimeSeriesView.FULL
+    val request = ListTimeSeriesRequest
+      .newBuilder()
       .setName(ProjectName.format("kamon-stackdriver"))
       .setFilter("""metric.type="custom.googleapis.com/kamon/test"""")
       .setInterval(interval)
