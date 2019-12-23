@@ -3,13 +3,14 @@ package kamon.stackdriver
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.{ILoggingEvent, LoggingEvent}
 import kamon.Kamon
-import org.scalatest.{FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 import kamon.trace.Trace.SamplingDecision
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class StackdriverEncoderTest extends FlatSpec with Matchers {
+class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
 
   val encoder = new StackdriverEncoder {
     override protected def extraData(event: ILoggingEvent): Map[String, String] =
