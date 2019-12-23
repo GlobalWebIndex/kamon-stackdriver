@@ -29,7 +29,7 @@ val `kamon-stackdriver` = project
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
-    crossScalaVersions := Seq("2.12.10", "2.13.1"),
+    crossScalaVersions := Seq("2.12.10", defaultScalaVersion),
     scalaVersion := defaultScalaVersion
   )
 
@@ -45,6 +45,6 @@ val `kamon-logback-stackdriver` = project
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
-    crossScalaVersions := Seq("2.12.10", "2.13.1"),
+    crossScalaVersions := Seq("2.12.10", defaultScalaVersion),
     scalaVersion := defaultScalaVersion
   )
