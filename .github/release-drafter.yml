@@ -8,13 +8,13 @@ categories:
       - 'enhancement'
   - title: '🐛 Bug Fixes'
     labels:
-      - 'fix'
       - 'bugfix'
-      - 'bug'
   - title: '🧰 Maintenance'
     labels: 
       - 'chore'
-      - 'dependency-update'
+  - title: '🆙 Dependency updates'
+    labels: 
+      - 'dependency-update'      
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 template: |
   ## Changes
