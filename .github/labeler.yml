@@ -1,0 +1,20 @@
+# universal mappings
+changed:tests:
+- "**/*Test.scala"
+changed:benchmarks:
+- "**/*Benchmark.scala"
+- "run-benchmarks.sh"
+- "run-benchmarks-for-tag.sh"
+changed:helm:
+- "chart/**/*"
+changed:docs:
+- "**/*.md"
+- "*.md"
+dependency-update:
+- "project/Dependencies.scala"
+- "project/build.properties"
+chore:
+- ".drone.yml"
+- "*.sbt"
+- "project/*.sbt"
+- "*.conf"
