@@ -21,7 +21,7 @@ steps:
 
 - name: run-tests
   pull: if-not-exists
-  image: lustefaniak/sbt:graalvm8_1.3.5_2.13.1
+  image: lustefaniak/sbt:adoptopenjdk8_1.3.8_2.13.1
   commands:
   - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
   volumes:
@@ -33,7 +33,7 @@ steps:
 
 - name: publish-on-tag
   pull: if-not-exists
-  image: lustefaniak/sbt:graalvm8_1.3.5_2.13.1
+  image: lustefaniak/sbt:adoptopenjdk8_1.3.8_2.13.1
   commands:
   - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
   environment:
@@ -50,7 +50,7 @@ steps:
 
 - name: publish-on-branch
   pull: if-not-exists
-  image: lustefaniak/sbt:graalvm8_1.3.5_2.13.1
+  image: lustefaniak/sbt:adoptopenjdk8_1.3.8_2.13.1
   commands:
   - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
   environment:
