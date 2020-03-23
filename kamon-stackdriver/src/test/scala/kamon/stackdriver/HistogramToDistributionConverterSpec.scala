@@ -1,9 +1,10 @@
 package kamon.stackdriver
 
 import kamon.metric.Distribution.Bucket
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class HistogramToDistributionConverterSpec extends FlatSpec with Matchers {
+class HistogramToDistributionConverterSpec extends AnyFlatSpec with Matchers {
 
   val eb = new ExponentialBucket(10, 1.5, 1.0)
 

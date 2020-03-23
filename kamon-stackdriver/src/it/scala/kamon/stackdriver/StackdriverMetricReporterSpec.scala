@@ -8,11 +8,12 @@ import kamon.metric.PeriodSnapshot
 import kamon.tag.TagSet
 import kamon.testkit.MetricSnapshotBuilder
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.collection.JavaConverters._
 
-class StackdriverMetricReporterSpec extends FlatSpec with Matchers with Eventually {
+class StackdriverMetricReporterSpec extends AnyFlatSpec with Matchers with Eventually {
 
   "StackdriverMetricReporter" should "report metric to GCP" in {
     val reporter = new StackdriverMetricReporter
