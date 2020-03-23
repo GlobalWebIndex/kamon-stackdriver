@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration debug="false">
+
+    <appender name="STDOUT" class="kamon.stackdriver.RecordingAppender">
+        <encoder class="kamon.stackdriver.ExtraStackdriverEncoder"/>
+    </appender>
+
+    <root level="TRACE">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

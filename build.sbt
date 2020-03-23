@@ -1,12 +1,13 @@
-val kamon               = "io.kamon" %% "kamon-core" % "2.0.5"
-val kamonTestKit        = "io.kamon" %% "kamon-testkit" % "2.0.5"
-val kamonLogback        = "io.kamon" %% "kamon-logback" % "2.0.2"
-val kanela              = "io.kamon" % "kanela-agent" % "1.0.5"
-val googleCloudCore     = "com.google.cloud" % "google-cloud-core" % "1.93.3"
-val googleMonitoring    = "com.google.cloud" % "google-cloud-monitoring" % "1.99.2"
-val googleTracing       = "com.google.cloud" % "google-cloud-trace" % "1.0.2"
-val sprayJson           = "io.spray" %% "spray-json" % "1.3.5"
-val scalatest           = "org.scalatest" %% "scalatest" % "3.1.1"
+val kamon            = "io.kamon"         %% "kamon-core"             % "2.0.5"
+val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "2.0.5"
+val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.2"
+val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.5"
+val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.93.3"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.99.2"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "1.0.2"
+val sprayJson        = "io.spray"         %% "spray-json"             % "1.3.5"
+val scalatest        = "org.scalatest"    %% "scalatest"              % "3.1.1"
+
 val defaultScalaVersion = "2.13.1"
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
