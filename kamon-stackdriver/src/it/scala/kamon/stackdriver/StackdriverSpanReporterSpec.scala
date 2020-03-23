@@ -5,12 +5,13 @@ import java.time.{Clock, Instant}
 import kamon.tag.TagSet
 import kamon.trace.Identifier.Factory._
 import kamon.trace.Span.Finished
-import kamon.trace.{Span, Trace}
 import kamon.trace.Trace.SamplingDecision
+import kamon.trace.{Span, Trace}
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class StackdriverSpanReporterSpec extends FlatSpec with Matchers with Eventually {
+class StackdriverSpanReporterSpec extends AnyFlatSpec with Matchers with Eventually {
 
   "StackdriverSpanReporter" should "report span to GCP" in {
     val reporter = new StackdriverSpanReporter
