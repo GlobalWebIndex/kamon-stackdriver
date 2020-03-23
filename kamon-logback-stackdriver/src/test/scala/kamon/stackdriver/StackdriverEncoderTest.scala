@@ -20,14 +20,14 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
 
   it should "format correctly log as json" in {
 
-    val contextEntry = Context.key("context_entry", "default_context_entry_value")
+    val contextEntry = Context.key[String]("context_entry", "default_context_entry_value")
 
     Kamon.runWithContextEntry(contextEntry, "context_entry_value") { // needs kamon.instrumentation.logback.mdc.copy.entries = ["context_entry"]
       Kamon.runWithContextTag("context_tag", "context_tag_value") {
 
         val span = Kamon.spanBuilder("operation").samplingDecision(SamplingDecision.Sample).start()
         Kamon.runWithSpan(span) {
-          logger.info("This is a message: {}", "argument_value", new Exception("kaboom"))
+          logger.info("This is a message: {}", "argument_value", new Exception("kaboom"): Any)
         }
 
         val str = RecordingAppender.logged.head
