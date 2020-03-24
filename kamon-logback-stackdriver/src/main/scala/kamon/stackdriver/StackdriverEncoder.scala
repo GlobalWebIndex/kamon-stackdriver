@@ -6,11 +6,10 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.pattern.{RootCauseFirstThrowableProxyConverter, ThrowableProxyConverter}
 import ch.qos.logback.classic.spi.{CallerData, ILoggingEvent}
 import ch.qos.logback.core.encoder.EncoderBase
-import kamon.instrumentation.context.HasContext
 import com.google.cloud.ServiceOptions
+import kamon.instrumentation.context.HasContext
 import kamon.trace.Span
 
-import scala.collection.JavaConverters._
 import scala.util.Try
 
 class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
@@ -23,11 +22,13 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
   private[this] val TraceIdFieldName        = "logging.googleapis.com/trace"
   private[this] val SpanIdFieldName         = "logging.googleapis.com/spanId"
   private[this] val SourceLocationFieldName = "logging.googleapis.com/sourceLocation"
+  //Exclude log required fields from MDC
+  private[this] val skippedMdcKeys              = Set(MessageFieldName, SeverityFieldName, TimestampFieldName, TraceIdFieldName, SpanIdFieldName, SourceLocationFieldName, "kamonSpanId", "kamonTraceId")
 
   override def headerBytes(): Array[Byte] = Array.empty
 
   private[this] var tpc: ThrowableProxyConverter = new RootCauseFirstThrowableProxyConverter()
-  tpc.setOptionList(List("full").asJava)
+  tpc.setOptionList(java.util.Arrays.asList("full"))
   tpc.start()
 
   override def encode(event: ILoggingEvent): Array[Byte] = {
@@ -37,6 +38,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
     message(builder, event)
     sourceLocation(builder, event)
     traceInformation(builder, event)
+    encodeMdc(builder, event)
     encodeExtraData(builder, event)
     eventTime(builder, event)
 
@@ -145,6 +147,17 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
           builder.encodeStringRaw(SpanIdFieldName).`:`.encodeString(currentSpan.id.string).`,`
         }
       case _ =>
+    }
+    builder
+  }
+
+  private[this] def encodeMdc(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
+    event.getMDCPropertyMap.forEach {
+      case (key, value) =>
+        if(!skippedMdcKeys(key)) {
+          builder.encodeString(key).`:`.encodeString(value)
+          builder.`,`
+        }
     }
     builder
   }
