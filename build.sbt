@@ -1,6 +1,6 @@
 val kamon            = "io.kamon"         %% "kamon-core"             % "2.0.5"
 val kamonTestKit     = "io.kamon"         %% "kamon-testkit"          % "2.0.5"
-val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.0.2"
+val kamonLogback     = "io.kamon"         %% "kamon-logback"          % "2.1.0"
 val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.5"
 val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.93.3"
 val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.99.2"
