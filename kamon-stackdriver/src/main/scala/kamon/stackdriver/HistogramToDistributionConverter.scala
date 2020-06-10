@@ -12,9 +12,9 @@ trait HistogramToDistributionConverter {
 
   @SuppressWarnings(Array("TraversableLast"))
   def histogramToDistributionValues(buckets: Seq[Bucket]): Seq[java.lang.Long] =
-    if (buckets.isEmpty) {
+    if (buckets.isEmpty)
       new Array[java.lang.Long](0)
-    } else {
+    else {
       val lastBucket = valueToBucketIndex(buckets.last.value)
       val results    = new Array[Long](lastBucket + 1) //use scala.Long as it defaults to 0
 
@@ -47,13 +47,12 @@ class ExponentialBucket(numFiniteBuckets: Int, growthFactor: Double, scale: Doub
     val result = (Math.log(value / scale) / growthFactorLog + 1.0).toInt
     //toInt correctly deals with values outside of the Int range for this use case
 
-    if (result < 0) {
+    if (result < 0)
       0
-    } else if (result >= bucketCount) {
+    else if (result >= bucketCount)
       bucketCount - 1
-    } else {
+    else
       result
-    }
   }
 
   val bucketOptions: BucketOptions = {
@@ -79,13 +78,12 @@ class LinearBucket(numFiniteBuckets: Int, width: Double, offset: Double) extends
     // Lower bound (1 <= i < N): offset + (width * (i - 1))
     val result = ((value - offset) / width + 1.0).toInt
 
-    if (result < 0) {
+    if (result < 0)
       0
-    } else if (result >= bucketCount) {
+    else if (result >= bucketCount)
       bucketCount - 1
-    } else {
+    else
       result
-    }
   }
 
   val bucketOptions: BucketOptions = {

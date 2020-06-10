@@ -48,8 +48,8 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
           fields("timestamp").asJsObject.fields.keySet shouldBe Set("seconds", "nanos")
 
           //Available in MDC, but can be skipped as are provided in Stackdriver compatible way
-          fields.keys should not contain ("kamonSpanId")
-          fields.keys should not contain ("kamonTraceId")
+          fields.keys should not contain "kamonSpanId"
+          fields.keys should not contain "kamonTraceId"
 
           //Fields provided from StackdriverEncoder.extraData
           fields("extra_field").convertTo[String] shouldBe "extra_field_value"

@@ -18,10 +18,13 @@ package object stackdriver {
     }
 
     val promise = Promise[T]()
-    future.addListener(new Runnable {
-      def run(): Unit =
-        promise.complete(Try(future.get()))
-    }, executor)
+    future.addListener(
+      new Runnable {
+        def run(): Unit =
+          promise.complete(Try(future.get()))
+      },
+      executor
+    )
     promise.future
   }
 
