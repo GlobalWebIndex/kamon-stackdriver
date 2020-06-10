@@ -23,7 +23,8 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
   private[this] val SpanIdFieldName         = "logging.googleapis.com/spanId"
   private[this] val SourceLocationFieldName = "logging.googleapis.com/sourceLocation"
   //Exclude log required fields from MDC
-  private[this] val skippedMdcKeys              = Set(MessageFieldName, SeverityFieldName, TimestampFieldName, TraceIdFieldName, SpanIdFieldName, SourceLocationFieldName, "kamonSpanId", "kamonTraceId")
+  private[this] val skippedMdcKeys =
+    Set(MessageFieldName, SeverityFieldName, TimestampFieldName, TraceIdFieldName, SpanIdFieldName, SourceLocationFieldName, "kamonSpanId", "kamonTraceId")
 
   override def headerBytes(): Array[Byte] = Array.empty
 
@@ -68,7 +69,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
       builder.startString().appendEncodedString(pkg.substring(0, pkg.lastIndexOf("/") + 1)).appendEncodedString(ste.getFileName).endString().`,`
 
       builder.encodeStringRaw("line").`:`.encodeNumber(ste.getLineNumber)
-    } else {
+    } else
       builder
         .encodeStringRaw("function")
         .`:`
@@ -81,7 +82,6 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
         .encodeStringRaw("line")
         .`:`
         .encodeNumber(CallerData.LINE_NA)
-    }
     builder.`}`.`,`
   }
 
@@ -120,11 +120,10 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
     builder.encodeStringRaw(MessageFieldName).`:`
     val message    = event.getFormattedMessage
     val stackTrace = tpc.convert(event)
-    if (stackTrace != null && stackTrace.nonEmpty) {
+    if (stackTrace != null && stackTrace.nonEmpty)
       builder.startString().appendEncodedString(message).appendEncodedString("\n").appendEncodedString(stackTrace).endString().`,`
-    } else {
+    else
       builder.encodeString(message).`,`
-    }
   }
 
   private[this] def traceInformation(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
@@ -154,7 +153,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
   private[this] def encodeMdc(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
     event.getMDCPropertyMap.forEach {
       case (key, value) =>
-        if(!skippedMdcKeys(key)) {
+        if (!skippedMdcKeys(key)) {
           builder.encodeString(key).`:`.encodeString(value)
           builder.`,`
         }

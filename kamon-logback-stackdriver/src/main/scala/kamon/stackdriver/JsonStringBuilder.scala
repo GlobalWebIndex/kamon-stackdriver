@@ -65,9 +65,9 @@ private[stackdriver] final class JsonStringBuilder(val underlying: java.lang.Str
               case '\n'                      => underlying.append("\\n")
               case '\r'                      => underlying.append("\\r")
               case '\t'                      => underlying.append("\\t")
-              case x if x <= 0xF             => underlying.append("\\u000").append(Integer.toHexString(x))
-              case x if x <= 0xFF            => underlying.append("\\u00").append(Integer.toHexString(x))
-              case x if x <= 0xFFF           => underlying.append("\\u0").append(Integer.toHexString(x))
+              case x if x <= 0xf             => underlying.append("\\u000").append(Integer.toHexString(x))
+              case x if x <= 0xff            => underlying.append("\\u00").append(Integer.toHexString(x))
+              case x if x <= 0xfff           => underlying.append("\\u0").append(Integer.toHexString(x))
               case x                         => underlying.append("\\u").append(Integer.toHexString(x))
             }
             appendChar(ix + 1)
