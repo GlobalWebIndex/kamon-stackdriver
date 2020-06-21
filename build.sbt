@@ -6,7 +6,7 @@ val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.93.5"
 val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.100.1"
 val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "1.0.3"
 val sprayJson        = "io.spray"        %% "spray-json"              % "1.3.5"
-val scalatest        = "org.scalatest"   %% "scalatest"               % "3.1.2"
+val scalatest        = "org.scalatest"   %% "scalatest"               % "3.2.0"
 
 val defaultScalaVersion = "2.13.2"
 
