@@ -1,33 +1,33 @@
 package kamon.stackdriver
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.spi.{ILoggingEvent, LoggingEvent}
 import kamon.Kamon
 import kamon.context.Context
-import kamon.tag.TagSet
 import kamon.trace.Trace.SamplingDecision
+import net.logstash.logback.argument.StructuredArguments
+import net.logstash.logback.marker.RawJsonAppendingMarker
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.{Logger, LoggerFactory, Marker}
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
 class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
-
+  import StackdriverEncoderTest._
   Kamon.init()
 
   val logger: Logger = LoggerFactory.getLogger(classOf[StackdriverEncoderTest])
 
   it should "format correctly log as json" in {
 
-    val contextEntry = Context.key[String]("context_entry", "default_context_entry_value")
+    val marker: Marker = "audit" -> Audit("bar")
+    val contextEntry   = Context.key[String]("context_entry", "default_context_entry_value")
 
     Kamon.runWithContextEntry(contextEntry, "context_entry_value") { // needs kamon.instrumentation.logback.mdc.copy.entries = ["context_entry"]
       Kamon.runWithContextTag("context_tag", "context_tag_value") {
 
         val span = Kamon.spanBuilder("operation").samplingDecision(SamplingDecision.Sample).start()
         Kamon.runWithSpan(span) {
-          logger.info("This is a message: {}", "argument_value", new Exception("kaboom"): Any)
+          logger.info(marker, "This is a message: {}", "argument_value", new Exception("kaboom"): Any)
         }
 
         val str = RecordingAppender.logged.head
@@ -51,6 +51,8 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
           fields.keys should not contain "kamonSpanId"
           fields.keys should not contain "kamonTraceId"
 
+          fields("audit").asJsObject.fields("foo") shouldBe "bar"
+
           //Fields provided from StackdriverEncoder.extraData
           fields("extra_field").convertTo[String] shouldBe "extra_field_value"
 
@@ -64,4 +66,12 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
     }
   }
 
+}
+
+object StackdriverEncoderTest {
+  implicit def auditToMarker[T: JsonFormat](pair: (String, T)): Marker =
+    new RawJsonAppendingMarker(pair._1, pair._2.toJson.compactPrint, StructuredArguments.VALUE_ONLY_MESSAGE_FORMAT_PATTERN)
+
+  case class Audit(foo: String)
+  implicit val tagFormat: RootJsonFormat[Audit] = jsonFormat1(Audit)
 }

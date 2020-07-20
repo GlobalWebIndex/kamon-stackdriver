@@ -41,8 +41,8 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
     traceInformation(builder, event)
     encodeMdc(builder, event)
     encodeExtraData(builder, event)
+    markerObj(builder, event)
     eventTime(builder, event)
-
     builder.`}`.appendNewline().result.getBytes
 
   }
@@ -99,6 +99,18 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
       .`:`
       .encodeNumber(ts.getNano)
       .`}`
+  }
+
+  private[this] def markerObj(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
+    val marker = event.getMarker
+    if (marker == null)
+      builder
+    else
+      builder
+        .encodeStringRaw(marker.getName)
+        .`:`
+        .encodeStringRaw(marker.toString)
+        .`,`
   }
 
   private[this] def severity(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder =
