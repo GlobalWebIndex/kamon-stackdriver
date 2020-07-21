@@ -6,35 +6,37 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class BasicStackdriverMarkerTest extends AnyWordSpec with Matchers {
 
+  private def builder = JsonStringBuilder.getSingleThreaded
+
   "BasicStackdriverMarker" should {
     "encode log values to json" when {
       "given null value" in {
-        BasicStackdriverMarker("blala", NullValue).encode shouldBe """null"""
+        BasicStackdriverMarker("markerName", NullValue).encode(builder).result shouldBe """"markerName":null"""
       }
       "given int value" in {
-        BasicStackdriverMarker("blala", NumberValue(1)).encode shouldBe """1"""
+        BasicStackdriverMarker("markerName", NumberValue(1)).encode(builder).result shouldBe """"markerName":1"""
       }
       "given bool value" in {
-        BasicStackdriverMarker("blala", BooleanValue(true)).encode shouldBe """true"""
-        BasicStackdriverMarker("blala", BooleanValue(false)).encode shouldBe """false"""
+        BasicStackdriverMarker("markerName", BooleanValue(true)).encode(builder).result shouldBe """"markerName":true"""
+        BasicStackdriverMarker("markerName", BooleanValue(false)).encode(builder).result shouldBe """"markerName":false"""
       }
       "given string value" in {
-        BasicStackdriverMarker("blala", StringValue("foo")).encode shouldBe """"foo""""
+        BasicStackdriverMarker("markerName", StringValue("foo")).encode(builder).result shouldBe """"markerName":"foo""""
       }
       "given string and simple nested value" in {
-        BasicStackdriverMarker("blala", NestedValue(Map("foo" -> StringValue("bar")))).encode shouldBe """{"foo":"bar"}"""
+        BasicStackdriverMarker("markerName", NestedValue(Map("foo" -> StringValue("bar")))).encode(builder).result shouldBe """"markerName":{"foo":"bar"}"""
       }
       "given multiple values in nested value" in {
         BasicStackdriverMarker(
-          "blala",
+          "markerName",
           NestedValue(Map("foo" -> StringValue("bar"), "bar" -> NullValue, "baz" -> BooleanValue(true), "meh" -> NumberValue(1)))
-        ).encode shouldBe """{"foo":"bar","bar":null,"baz":true,"meh":1}"""
+        ).encode(builder).result shouldBe """"markerName":{"foo":"bar","bar":null,"baz":true,"meh":1}"""
       }
       "given multiple nested values" in {
         BasicStackdriverMarker(
-          "blala",
+          "markerName",
           NestedValue(Map("foo" -> NestedValue(Map("bar" -> StringValue("baz")))))
-        ).encode shouldBe """{"foo":{"bar":"baz"}}""".stripMargin
+        ).encode(builder).result shouldBe """"markerName":{"foo":{"bar":"baz"}}""".stripMargin
       }
     }
   }

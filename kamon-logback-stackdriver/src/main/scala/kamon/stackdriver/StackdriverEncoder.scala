@@ -104,11 +104,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
   private[this] def markerObj(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder =
     event.getMarker match {
       case marker: StackdriverMarker =>
-        builder
-          .encodeStringRaw(marker.name)
-          .`:`
-          .appendString(marker.encode)
-          .`,`
+        marker.encode(builder).`,`
       case _ =>
         builder
     }
