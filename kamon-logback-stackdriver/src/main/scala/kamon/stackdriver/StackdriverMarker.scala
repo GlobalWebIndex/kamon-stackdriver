@@ -35,7 +35,10 @@ abstract class StackdriverMarker extends Marker {
 object StackdriverMarker {
   sealed trait LogValue
   object LogValue {
+    final case object NullValue                                 extends LogValue
     final case class StringValue(v: String)                     extends LogValue
+    final case class BooleanValue(v: Boolean)                   extends LogValue
+    final case class NumberValue(v: Int)                        extends LogValue
     final case class NestedValue(nested: Map[String, LogValue]) extends LogValue
 
     trait Encoder {
@@ -43,6 +46,10 @@ object StackdriverMarker {
     }
 
     implicit object JsonEncoder extends Encoder {
+      private def prefixWithComma(counter: Int, totalCount: Int, builder: JsonStringBuilder) = {
+        val encodedWithComma = if (counter == totalCount) builder else builder.`,`
+        counter + 1 -> encodedWithComma
+      }
       private def jsonStringBuilder(value: LogValue, build: JsonStringBuilder): JsonStringBuilder =
         value match {
           case NestedValue(nested) =>
@@ -50,17 +57,26 @@ object StackdriverMarker {
             nested
               .foldLeft((1, build.`{`)) {
                 case ((counter, acc), (k, StringValue(v))) =>
-                  val encodedValue     = acc.encodeStringRaw(k).`:`.encodeStringRaw(v)
-                  val encodedWithComma = if (counter == elementsCount) encodedValue else encodedValue.`,`
-                  counter + 1 -> encodedWithComma
+                  prefixWithComma(counter, elementsCount, acc.encodeStringRaw(k).`:`.encodeStringRaw(v))
+                case ((counter, acc), (k, NumberValue(v))) =>
+                  prefixWithComma(counter, elementsCount, acc.encodeStringRaw(k).`:`.appendString(v.toString))
+                case ((counter, acc), (k, NullValue)) =>
+                  prefixWithComma(counter, elementsCount, acc.encodeStringRaw(k).`:`.appendString("null"))
+                case ((counter, acc), (k, BooleanValue(b))) =>
+                  val stringBoolVal = if (b) "true" else "false"
+                  prefixWithComma(counter, elementsCount, acc.encodeStringRaw(k).`:`.appendString(stringBoolVal))
                 case ((counter, acc), (k, nv @ NestedValue(_))) =>
-                  val encodedValue     = jsonStringBuilder(nv, acc.encodeStringRaw(k).`:`)
-                  val encodedWithComma = if (counter == elementsCount) encodedValue else encodedValue.`,`
-                  counter + 1 -> encodedWithComma
+                  prefixWithComma(counter, elementsCount, jsonStringBuilder(nv, acc.encodeStringRaw(k).`:`))
               }
               ._2 `}`
           case StringValue(v) =>
             build.encodeStringRaw(v)
+          case NumberValue(v) =>
+            build.appendString(v.toString)
+          case NullValue =>
+            build.appendString("null")
+          case BooleanValue(b) =>
+            if (b) build.appendString("true") else build.appendString("false")
         }
 
       override def encode(value: LogValue): String = jsonStringBuilder(value, JsonStringBuilder.getSingleThreaded).result
