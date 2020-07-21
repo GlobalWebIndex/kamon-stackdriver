@@ -109,6 +109,8 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
           .`:`
           .appendString(marker.encode)
           .`,`
+      case _ =>
+        builder
     }
 
   private[this] def severity(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder =
