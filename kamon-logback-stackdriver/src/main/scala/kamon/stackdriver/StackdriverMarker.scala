@@ -5,6 +5,7 @@ import java.util
 import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
+import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
 import scala.jdk.CollectionConverters._
 
@@ -46,33 +47,33 @@ object StackdriverMarker {
     }
 
     implicit object JsonEncoder extends Writer {
-      private def prefixWithComma(counter: Int, totalCount: Int, builder: JsonStringBuilder) = {
-        val encodedWithComma = if (counter == totalCount) builder else builder.`,`
-        counter + 1 -> encodedWithComma
-      }
 
-      private def jsonStringBuilder(value: LogValue, build: JsonStringBuilder): JsonStringBuilder =
+      private def jsonStringBuilder(value: LogValue, builder: JsonStringBuilder): Unit =
         value match {
           case StringValue(v) =>
-            build.encodeStringRaw(v)
+            builder.encodeStringRaw(v)
           case NumberValue(v) =>
-            build.appendString(v.toString)
+            builder.appendString(v.toString)
           case NullValue =>
-            build.appendString("null")
+            builder.appendString("null")
           case BooleanValue(b) =>
-            if (b) build.appendString("true") else build.appendString("false")
+            if (b) builder.appendString("true") else builder.appendString("false")
           case NestedValue(nested) =>
             val elementsCount = nested.size
             nested
-              .foldLeft((1, build.`{`)) {
+              .foldLeft((1, builder.`{`)) {
                 case ((counter, acc), (k, v)) =>
-                  prefixWithComma(counter, elementsCount, jsonStringBuilder(v, acc.encodeStringRaw(k).`:`))
+                  jsonStringBuilder(v, acc.encodeStringRaw(k).`:`)
+                  val encodedWithComma = if (counter == elementsCount) acc else acc.`,`
+                  counter + 1 -> encodedWithComma
               }
               ._2 `}`
         }
 
-      override def write(name: String, builder: JsonStringBuilder, value: LogValue): JsonStringBuilder =
+      override def write(name: String, builder: JsonStringBuilder, value: LogValue): JsonStringBuilder = {
         jsonStringBuilder(value, builder.encodeStringRaw(name).`:`)
+        builder
+      }
     }
   }
 }
