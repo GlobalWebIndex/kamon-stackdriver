@@ -1,13 +1,12 @@
-val kamon            = "io.kamon"            %% "kamon-core"               % "2.1.1"
-val kamonTestKit     = "io.kamon"            %% "kamon-testkit"            % "2.1.1"
-val kamonLogback     = "io.kamon"            %% "kamon-logback"            % "2.1.1"
-val kanela           = "io.kamon"             % "kanela-agent"             % "1.0.5"
-val googleCloudCore  = "com.google.cloud"     % "google-cloud-core"        % "1.93.5"
-val googleMonitoring = "com.google.cloud"     % "google-cloud-monitoring"  % "1.100.1"
-val googleTracing    = "com.google.cloud"     % "google-cloud-trace"       % "1.0.3"
-val sprayJson        = "io.spray"            %% "spray-json"               % "1.3.5"
-val scalatest        = "org.scalatest"       %% "scalatest"                % "3.1.2"
-val logstashEncoder  = "net.logstash.logback" % "logstash-logback-encoder" % "6.4"
+val kamon            = "io.kamon"        %% "kamon-core"              % "2.1.1"
+val kamonTestKit     = "io.kamon"        %% "kamon-testkit"           % "2.1.1"
+val kamonLogback     = "io.kamon"        %% "kamon-logback"           % "2.1.1"
+val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.5"
+val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.93.5"
+val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.100.1"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "1.0.3"
+val sprayJson        = "io.spray"        %% "spray-json"              % "1.3.5"
+val scalatest        = "org.scalatest"   %% "scalatest"               % "3.1.2"
 
 val defaultScalaVersion = "2.13.3"
 
@@ -44,7 +43,7 @@ val `kamon-logback-stackdriver` = project
   .settings(
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++
-      testScope(sprayJson, kamonTestKit, scalatest, logstashEncoder),
+      testScope(sprayJson, kamonTestKit, scalatest),
     bintrayOrganization := Some("gwidx"),
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
