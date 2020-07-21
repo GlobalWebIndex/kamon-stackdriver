@@ -8,7 +8,7 @@ import org.slf4j.Marker
 import scala.collection.concurrent.TrieMap
 import scala.jdk.CollectionConverters._
 
-abstract class StackdriverMarker extends Marker {
+abstract class StackdriverMarker(implicit enc: LogValue.Encoder) extends Marker {
   private val markers = TrieMap.empty[String, Marker]
 
   def values: Map[String, LogValue] =
@@ -20,7 +20,7 @@ abstract class StackdriverMarker extends Marker {
   def name: String
   def value: LogValue
 
-  def encode(implicit enc: LogValue.Encoder): String = enc.encode(value)
+  def encode: String = enc.encode(value)
 
   override def getName: String                   = name
   override def add(marker: Marker): Unit         = markers.addOne(marker.getName -> marker)
