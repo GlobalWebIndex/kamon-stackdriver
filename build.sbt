@@ -9,7 +9,7 @@ val sprayJson        = "io.spray"            %% "spray-json"               % "1.
 val scalatest        = "org.scalatest"       %% "scalatest"                % "3.1.2"
 val logstashEncoder  = "net.logstash.logback" % "logstash-logback-encoder" % "6.4"
 
-val defaultScalaVersion = "2.13.2"
+val defaultScalaVersion = "2.13.3"
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)

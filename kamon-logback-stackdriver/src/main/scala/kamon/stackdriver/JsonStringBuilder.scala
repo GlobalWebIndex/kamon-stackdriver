@@ -36,6 +36,11 @@ private[stackdriver] final class JsonStringBuilder(val underlying: java.lang.Str
     this
   }
 
+  def appendString(s: String): JsonStringBuilder = {
+    underlying.append(s)
+    this
+  }
+
   //Taken from spray-json
   // $COVERAGE-OFF$
   def appendEncodedString(s: String): JsonStringBuilder = {
