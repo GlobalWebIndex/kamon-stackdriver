@@ -5,7 +5,6 @@ import java.util
 import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
-import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
 import scala.jdk.CollectionConverters._
 
