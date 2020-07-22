@@ -2,6 +2,9 @@ package kamon.stackdriver
 
 import java.util
 
+import kamon.stackdriver.StackdriverAuditMarker.ActionType.ActionType
+import kamon.stackdriver.StackdriverAuditMarker.Audit
+import kamon.stackdriver.StackdriverMarker.LogValue.{NestedValue, NumberValue, StringValue}
 import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
@@ -38,7 +41,7 @@ object StackdriverMarker {
     final case object NullValue                                 extends LogValue
     final case class StringValue(v: String)                     extends LogValue
     final case class BooleanValue(v: Boolean)                   extends LogValue
-    final case class NumberValue(v: Int)                        extends LogValue
+    final case class NumberValue(v: Long)                       extends LogValue
     final case class NestedValue(nested: Map[String, LogValue]) extends LogValue
 
     trait Writer {
@@ -78,3 +81,42 @@ object StackdriverMarker {
 }
 
 case class BasicStackdriverMarker(name: String, value: LogValue) extends StackdriverMarker
+
+case class StackdriverAuditMarker(audit: Audit) extends StackdriverMarker {
+  val name = "audit"
+  val value: LogValue =
+    NestedValue(
+      Map(
+        "caller" -> NestedValue(
+          Map(
+            "gwi_org_id"  -> NumberValue(audit.caller.gwiOrgId),
+            "gwi_user_id" -> NumberValue(audit.caller.gwiUserId)
+          )
+        ),
+        "action" -> NestedValue(
+          Map(
+            "type"    -> StringValue(audit.action.`type`.toString),
+            "message" -> StringValue(audit.action.message)
+          )
+        ),
+        "target" -> NestedValue(
+          Map(
+            "type" -> StringValue(audit.target.`type`),
+            "name" -> StringValue(audit.target.name),
+            "id"   -> NumberValue(audit.target.id)
+          )
+        )
+      )
+    )
+}
+
+object StackdriverAuditMarker {
+  object ActionType extends Enumeration {
+    type ActionType = Value
+    val Create, Update, Delete = Value
+  }
+  case class Caller(gwiOrgId: Int, gwiUserId: Int)
+  case class Action(`type`: ActionType, message: String)
+  case class Target(`type`: String, id: Long, name: String)
+  case class Audit(caller: Caller, action: Action, target: Target)
+}
