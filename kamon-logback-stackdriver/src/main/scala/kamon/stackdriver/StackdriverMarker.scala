@@ -6,7 +6,7 @@ import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
 import scala.collection.concurrent.TrieMap
-import import scala.collection.JavaConverters._
+import scala.collection.JavaConverters._
 
 abstract class StackdriverMarker(implicit enc: LogValue.Writer) extends Marker {
   private val markers = TrieMap.empty[String, Marker]
@@ -23,7 +23,7 @@ abstract class StackdriverMarker(implicit enc: LogValue.Writer) extends Marker {
   def encode(builder: JsonStringBuilder): JsonStringBuilder = enc.write(name, builder, value)
 
   override def getName: String                   = name
-  override def add(marker: Marker): Unit         = markers.addOne(marker.getName -> marker)
+  override def add(marker: Marker): Unit         = markers.put(marker.getName, marker)
   override def remove(marker: Marker): Boolean   = markers.remove(marker.getName).isDefined
   override def hasChildren: Boolean              = markers.isEmpty
   override def hasReferences: Boolean            = markers.isEmpty
