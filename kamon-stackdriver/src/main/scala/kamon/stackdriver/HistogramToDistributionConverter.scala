@@ -4,8 +4,7 @@ import com.google.api.Distribution
 import com.google.api.Distribution.BucketOptions
 import kamon.metric.Distribution.Bucket
 
-import scala.collection.immutable.ArraySeq
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 
 trait HistogramToDistributionConverter {
   protected def valueToBucketIndex(value: Long): Int
@@ -14,7 +13,7 @@ trait HistogramToDistributionConverter {
   @SuppressWarnings(Array("TraversableLast"))
   def histogramToDistributionValues(buckets: Seq[Bucket]): Seq[java.lang.Long] =
     if (buckets.isEmpty)
-      ArraySeq.unsafeWrapArray(new Array[java.lang.Long](0))
+      new Array[java.lang.Long](0)
     else {
       val lastBucket = valueToBucketIndex(buckets.last.value)
       val results    = new Array[Long](lastBucket + 1) //use scala.Long as it defaults to 0
@@ -24,7 +23,7 @@ trait HistogramToDistributionConverter {
         results(index) += bucket.frequency
       }
 
-      results.map(java.lang.Long.valueOf).toIndexedSeq //box values for Monitoring API
+      results.map(java.lang.Long.valueOf) //box values for Monitoring API
     }
 
   def histogramToDistribution(buckets: Seq[Bucket], count: Long): Distribution = {

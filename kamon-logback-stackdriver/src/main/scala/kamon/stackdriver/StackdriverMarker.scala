@@ -6,7 +6,7 @@ import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
 import scala.collection.concurrent.TrieMap
-import scala.jdk.CollectionConverters._
+import import scala.collection.JavaConverters._
 
 abstract class StackdriverMarker(implicit enc: LogValue.Writer) extends Marker {
   private val markers = TrieMap.empty[String, Marker]

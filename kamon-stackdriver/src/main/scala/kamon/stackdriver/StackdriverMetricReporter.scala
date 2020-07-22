@@ -16,7 +16,7 @@ import kamon.tag.{Tag, TagSet}
 import kamon.util.CallingThreadExecutionContext
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
@@ -92,7 +92,7 @@ class StackdriverMetricReporter extends MetricReporter {
 
   private[this] def sanitizeTags(tags: TagSet): util.Map[String, String] = {
     val res = new util.HashMap[String, String]()
-    tags.all().foreach {
+    tags.all.foreach {
       case t: Tag.Boolean =>
         res.put(sanitizationRegexp.replaceAllIn(t.key, "_"), t.value.toString)
       case t: Tag.Long =>
