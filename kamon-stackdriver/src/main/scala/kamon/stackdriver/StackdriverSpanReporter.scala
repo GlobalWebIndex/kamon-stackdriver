@@ -13,7 +13,7 @@ import kamon.trace.Span.Link.Kind.FollowsFrom
 import kamon.util.CallingThreadExecutionContext
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Set
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
@@ -48,7 +48,7 @@ class StackdriverSpanReporter extends SpanReporter {
 
     projectId = Option(config.getString("span.google-project-id")).filter(_.nonEmpty).getOrElse(ServiceOptions.getDefaultProjectId)
     skipOperationNames = config.getStringList("span.skip-operation-names").asScala.toSet
-    mappings = config.getObject("span.tags.mappings").unwrapped().asScala.mapValues(_.toString).toMap.withDefault(identity)
+    mappings = config.getObject("span.tags.mappings").unwrapped().asScala.view.mapValues(_.toString).toMap.withDefault(identity)
 
     val credentialsProvider = CredentialsProviderFactory.fromConfig(config)
     val settings = TraceServiceSettings

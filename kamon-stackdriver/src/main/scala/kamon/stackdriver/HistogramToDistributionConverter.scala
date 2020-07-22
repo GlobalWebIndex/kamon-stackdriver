@@ -4,7 +4,7 @@ import com.google.api.Distribution
 import com.google.api.Distribution.BucketOptions
 import kamon.metric.Distribution.Bucket
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait HistogramToDistributionConverter {
   protected def valueToBucketIndex(value: Long): Int
