@@ -50,7 +50,7 @@ object StackdriverMarker {
       private def jsonStringBuilder(value: LogValue, builder: JsonStringBuilder): Unit =
         value match {
           case StringValue(v) =>
-            builder.encodeStringRaw(v)
+            builder.encodeString(v)
           case NumberValue(v) =>
             builder.encodeNumber(v)
           case NullValue =>
@@ -62,7 +62,7 @@ object StackdriverMarker {
             nested
               .foldLeft((1, builder.`{`)) {
                 case ((counter, acc), (k, v)) =>
-                  jsonStringBuilder(v, acc.encodeStringRaw(k).`:`)
+                  jsonStringBuilder(v, acc.encodeString(k).`:`)
                   val encodedWithComma = if (counter == elementsCount) acc else acc.`,`
                   counter + 1 -> encodedWithComma
               }
@@ -70,7 +70,7 @@ object StackdriverMarker {
         }
 
       override def write(name: String, builder: JsonStringBuilder, value: LogValue): JsonStringBuilder = {
-        jsonStringBuilder(value, builder.encodeStringRaw(name).`:`)
+        jsonStringBuilder(value, builder.encodeString(name).`:`)
         builder
       }
     }
