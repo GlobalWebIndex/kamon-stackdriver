@@ -11,7 +11,6 @@ import kamon.instrumentation.context.HasContext
 import kamon.trace.Span
 import org.slf4j.Marker
 
-import scala.collection.JavaConverters._
 import scala.util.Try
 
 class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
@@ -112,7 +111,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
           builder.encodeString(marker.getName).`:`
           builder.encodeString(marker.toString).`,`
       }
-      marker.iterator().asScala.foreach(buildRecursively)
+      marker.iterator().forEachRemaining(buildRecursively)
     }
     buildRecursively(event.getMarker)
     builder
