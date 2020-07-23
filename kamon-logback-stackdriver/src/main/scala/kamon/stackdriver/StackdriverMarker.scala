@@ -17,7 +17,7 @@ abstract class StackdriverMarker extends Marker {
   def name: String
   def value: LogValue
 
-  protected[stackdriver] def encode(builder: JsonStringBuilder): JsonStringBuilder =
+  def encode(builder: JsonStringBuilder): JsonStringBuilder =
     writer.write(name, builder, value)
 
   override def getName: String                   = name
