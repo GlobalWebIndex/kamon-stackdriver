@@ -5,17 +5,11 @@ import java.util
 import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
-import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
 
 abstract class StackdriverMarker(implicit enc: LogValue.Writer) extends Marker {
   private val markers = TrieMap.empty[String, Marker]
-
-  def values: Map[String, LogValue] =
-    markers.collect {
-      case (name, marker: StackdriverMarker) =>
-        name -> marker.value
-    }.toMap
 
   def name: String
   def value: LogValue
