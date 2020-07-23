@@ -36,8 +36,13 @@ private[stackdriver] final class JsonStringBuilder(val underlying: java.lang.Str
     this
   }
 
-  def appendString(s: String): JsonStringBuilder = {
-    underlying.append(s)
+  def encodeNull(): JsonStringBuilder = {
+    underlying.append("null")
+    this
+  }
+
+  def encodeBoolean(b: Boolean): JsonStringBuilder = {
+    if (b) underlying.append("true") else underlying.append("false")
     this
   }
 

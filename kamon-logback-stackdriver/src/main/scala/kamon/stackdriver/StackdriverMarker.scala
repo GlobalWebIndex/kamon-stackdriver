@@ -25,8 +25,8 @@ abstract class StackdriverMarker(implicit enc: LogValue.Writer) extends Marker {
   override def getName: String                   = name
   override def add(marker: Marker): Unit         = markers.put(marker.getName, marker)
   override def remove(marker: Marker): Boolean   = markers.remove(marker.getName).isDefined
-  override def hasChildren: Boolean              = markers.isEmpty
-  override def hasReferences: Boolean            = markers.isEmpty
+  override def hasChildren: Boolean              = markers.nonEmpty
+  override def hasReferences: Boolean            = markers.nonEmpty
   override def iterator(): util.Iterator[Marker] = markers.values.iterator.asJava
   override def contains(marker: Marker): Boolean = this == marker || markers.contains(marker.getName)
   override def contains(name: String): Boolean   = markers.contains(name)
@@ -52,11 +52,11 @@ object StackdriverMarker {
           case StringValue(v) =>
             builder.encodeStringRaw(v)
           case NumberValue(v) =>
-            builder.appendString(v.toString)
+            builder.encodeNumber(v)
           case NullValue =>
-            builder.appendString("null")
+            builder.encodeNull()
           case BooleanValue(b) =>
-            if (b) builder.appendString("true") else builder.appendString("false")
+            builder.encodeBoolean(b)
           case NestedValue(nested) =>
             val elementsCount = nested.size
             nested
