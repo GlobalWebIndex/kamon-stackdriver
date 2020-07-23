@@ -113,7 +113,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
       }
       marker.iterator().forEachRemaining(buildRecursively)
     }
-    buildRecursively(event.getMarker)
+    Option(event.getMarker).foreach(buildRecursively)
     builder
   }
 

@@ -2,19 +2,23 @@ package kamon.stackdriver
 
 import java.util
 
+import kamon.stackdriver.StackdriverMarker.LogValue.JsonWriter
 import kamon.stackdriver.StackdriverMarker._
 import org.slf4j.Marker
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 
-abstract class StackdriverMarker(implicit enc: LogValue.Writer) extends Marker {
+abstract class StackdriverMarker extends Marker {
   private val markers = TrieMap.empty[String, Marker]
+
+  protected def writer: LogValue.Writer = JsonWriter // override if needed
 
   def name: String
   def value: LogValue
 
-  def encode(builder: JsonStringBuilder): JsonStringBuilder = enc.write(name, builder, value)
+  protected[stackdriver] def encode(builder: JsonStringBuilder): JsonStringBuilder =
+    writer.write(name, builder, value)
 
   override def getName: String                   = name
   override def add(marker: Marker): Unit         = markers.put(marker.getName, marker)
@@ -39,7 +43,7 @@ object StackdriverMarker {
       def write(name: String, builder: JsonStringBuilder, logValue: LogValue): JsonStringBuilder
     }
 
-    implicit object JsonEncoder extends Writer {
+    object JsonWriter extends Writer {
 
       private def jsonStringBuilder(value: LogValue, builder: JsonStringBuilder): Unit =
         value match {

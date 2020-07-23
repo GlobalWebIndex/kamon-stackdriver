@@ -24,7 +24,9 @@ class BasicStackdriverMarkerTest extends AnyWordSpec with Matchers {
         BasicStackdriverMarker("markerName", StringValue("foo")).encode(builder).result shouldBe """"markerName":"foo""""
       }
       "given string and simple nested value" in {
-        BasicStackdriverMarker("markerName", NestedValue(Map("foo" -> StringValue("bar")))).encode(builder).result shouldBe """"markerName":{"foo":"bar"}"""
+        BasicStackdriverMarker("markerName", NestedValue(Map("foo" -> StringValue("bar"))))
+          .encode(builder)
+          .result shouldBe """"markerName":{"foo":"bar"}"""
       }
       "given multiple values in nested value" in {
         BasicStackdriverMarker(
