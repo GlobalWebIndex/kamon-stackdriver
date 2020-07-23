@@ -2,6 +2,8 @@ package kamon.stackdriver
 
 import kamon.Kamon
 import kamon.context.Context
+import kamon.stackdriver.StackdriverEncoderTest.TestStackdriverMarker
+import kamon.stackdriver.StackdriverMarker.LogValue
 import kamon.stackdriver.StackdriverMarker.LogValue.{NestedValue, StringValue}
 import kamon.trace.Trace.SamplingDecision
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,15 +19,19 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
 
   it should "format correctly log as json" in {
 
-    val marker: Marker = BasicStackdriverMarker("audit", NestedValue(Map("foo" -> StringValue("bar"))))
-    val contextEntry   = Context.key[String]("context_entry", "default_context_entry_value")
+    val parentMarker     = BasicStackdriverMarker("audit-marker", NestedValue(Map("key" -> StringValue("value"))))
+    val grandChildMarker = TestStackdriverMarker("grand-child-marker")
+    val childMarker      = TestStackdriverMarker("child-marker")
+    childMarker.add(grandChildMarker)
+    parentMarker.add(childMarker)
+    val contextEntry = Context.key[String]("context_entry", "default_context_entry_value")
 
     Kamon.runWithContextEntry(contextEntry, "context_entry_value") { // needs kamon.instrumentation.logback.mdc.copy.entries = ["context_entry"]
       Kamon.runWithContextTag("context_tag", "context_tag_value") {
 
         val span = Kamon.spanBuilder("operation").samplingDecision(SamplingDecision.Sample).start()
         Kamon.runWithSpan(span) {
-          logger.info(marker, "This is a message: {}", "argument_value", new Exception("kaboom"): Any)
+          logger.info(parentMarker, "This is a message: {}", "argument_value", new Exception("kaboom"): Any)
         }
 
         val str = RecordingAppender.logged.head
@@ -49,7 +55,9 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
           fields.keys should not contain "kamonSpanId"
           fields.keys should not contain "kamonTraceId"
 
-          fields("audit").asJsObject.fields("foo").convertTo[String] shouldBe "bar"
+          fields("audit-marker").asJsObject.fields("key").convertTo[String] shouldBe "value"
+          fields("child-marker").convertTo[String] shouldBe "value"
+          fields("grand-child-marker").convertTo[String] shouldBe "value"
 
           //Fields provided from StackdriverEncoder.extraData
           fields("extra_field").convertTo[String] shouldBe "extra_field_value"
@@ -64,4 +72,11 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
     }
   }
 
+}
+
+object StackdriverEncoderTest {
+  case class TestStackdriverMarker(name: String) extends StackdriverMarker {
+    override def toString: String = "test"
+    override def value: LogValue  = StringValue("value")
+  }
 }
