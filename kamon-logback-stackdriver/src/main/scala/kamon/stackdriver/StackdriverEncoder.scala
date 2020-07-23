@@ -109,7 +109,7 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
         case marker: StackdriverMarker =>
           marker.encode(builder).`,`
         case marker =>
-          builder.encodeStringRaw(marker.getName).`:`
+          builder.encodeString(marker.getName).`:`
           builder.encodeString(marker.toString).`,`
       }
       marker.iterator().asScala.foreach(buildRecursively)
