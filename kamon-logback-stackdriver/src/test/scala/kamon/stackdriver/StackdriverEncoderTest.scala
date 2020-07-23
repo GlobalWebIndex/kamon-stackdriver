@@ -8,7 +8,7 @@ import kamon.stackdriver.StackdriverMarker.LogValue.{NestedValue, StringValue}
 import kamon.trace.Trace.SamplingDecision
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.slf4j.{Logger, LoggerFactory, Marker}
+import org.slf4j.{Logger, LoggerFactory}
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
