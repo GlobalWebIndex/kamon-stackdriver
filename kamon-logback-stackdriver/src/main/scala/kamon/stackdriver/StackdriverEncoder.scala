@@ -9,6 +9,7 @@ import ch.qos.logback.core.encoder.EncoderBase
 import com.google.cloud.ServiceOptions
 import kamon.instrumentation.context.HasContext
 import kamon.trace.Span
+import org.slf4j.Marker
 
 import scala.util.Try
 
@@ -41,8 +42,8 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
     traceInformation(builder, event)
     encodeMdc(builder, event)
     encodeExtraData(builder, event)
+    markerObj(builder, event)
     eventTime(builder, event)
-
     builder.`}`.appendNewline().result.getBytes
 
   }
@@ -99,6 +100,21 @@ class StackdriverEncoder extends EncoderBase[ILoggingEvent] {
       .`:`
       .encodeNumber(ts.getNano)
       .`}`
+  }
+
+  private[this] def markerObj(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder = {
+    def buildRecursively(marker: Marker): Unit = {
+      marker match {
+        case marker: StackdriverMarker =>
+          marker.encode(builder).`,`
+        case marker =>
+          builder.encodeString(marker.getName).`:`
+          builder.encodeString(marker.toString).`,`
+      }
+      marker.iterator().forEachRemaining(buildRecursively)
+    }
+    Option(event.getMarker).foreach(buildRecursively)
+    builder
   }
 
   private[this] def severity(builder: JsonStringBuilder, event: ILoggingEvent): JsonStringBuilder =

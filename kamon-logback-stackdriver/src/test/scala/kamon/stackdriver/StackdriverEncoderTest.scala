@@ -1,24 +1,32 @@
 package kamon.stackdriver
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.spi.{ILoggingEvent, LoggingEvent}
 import kamon.Kamon
 import kamon.context.Context
-import kamon.tag.TagSet
+import kamon.stackdriver.StackdriverEncoderTest.TestStackdriverMarker
+import kamon.stackdriver.StackdriverMarker.LogValue
+import kamon.stackdriver.StackdriverMarker.LogValue.{NestedValue, StringValue}
 import kamon.trace.Trace.SamplingDecision
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.slf4j.helpers.BasicMarkerFactory
 import org.slf4j.{Logger, LoggerFactory}
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
 class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
-
   Kamon.init()
 
   val logger: Logger = LoggerFactory.getLogger(classOf[StackdriverEncoderTest])
 
   it should "format correctly log as json" in {
+
+    val grandParentMarker = new BasicMarkerFactory().getMarker("grand-parent-marker")
+    val parentMarker      = BasicStackdriverMarker("audit-marker", NestedValue(Map("key" -> StringValue("value"))))
+    val childMarker_1     = TestStackdriverMarker("child-marker-1")
+    val childMarker_2     = TestStackdriverMarker("child-marker-2")
+    grandParentMarker.add(parentMarker)
+    parentMarker.add(childMarker_1)
+    parentMarker.add(childMarker_2)
 
     val contextEntry = Context.key[String]("context_entry", "default_context_entry_value")
 
@@ -27,7 +35,7 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
 
         val span = Kamon.spanBuilder("operation").samplingDecision(SamplingDecision.Sample).start()
         Kamon.runWithSpan(span) {
-          logger.info("This is a message: {}", "argument_value", new Exception("kaboom"): Any)
+          logger.info(grandParentMarker, "This is a message: {}", "argument_value", new Exception("kaboom"): Any)
         }
 
         val str = RecordingAppender.logged.head
@@ -51,6 +59,12 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
           fields.keys should not contain "kamonSpanId"
           fields.keys should not contain "kamonTraceId"
 
+          // test output of markers
+          fields("audit-marker").asJsObject.fields("key").convertTo[String] shouldBe "value"
+          fields("child-marker-1").convertTo[String] shouldBe "value"
+          fields("child-marker-2").convertTo[String] shouldBe "value"
+          fields("grand-parent-marker").convertTo[String] shouldBe "grand-parent-marker [ audit-marker ]"
+
           //Fields provided from StackdriverEncoder.extraData
           fields("extra_field").convertTo[String] shouldBe "extra_field_value"
 
@@ -64,4 +78,11 @@ class StackdriverEncoderTest extends AnyFlatSpec with Matchers {
     }
   }
 
+}
+
+object StackdriverEncoderTest {
+  case class TestStackdriverMarker(name: String) extends StackdriverMarker {
+    override def toString: String = "test"
+    override def value: LogValue  = StringValue("value")
+  }
 }
