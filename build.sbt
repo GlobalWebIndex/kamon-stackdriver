@@ -10,6 +10,8 @@ val scalatest        = "org.scalatest"   %% "scalatest"               % "3.2.0"
 
 val defaultScalaVersion = "2.13.3"
 
+val mimaPreviousVersion = "1.2.0"
+
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)
   .settings(
@@ -32,7 +34,8 @@ val `kamon-stackdriver` = project
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
-    scalaVersion := defaultScalaVersion
+    scalaVersion := defaultScalaVersion,
+    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
   )
 
 def ittestScope(deps: sbt.ModuleID*): scala.Seq[sbt.ModuleID] = deps.map(_ % "it,test")
@@ -48,5 +51,6 @@ val `kamon-logback-stackdriver` = project
     bintrayRepository := "maven",
     bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
-    scalaVersion := defaultScalaVersion
+    scalaVersion := defaultScalaVersion,
+    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
   )
