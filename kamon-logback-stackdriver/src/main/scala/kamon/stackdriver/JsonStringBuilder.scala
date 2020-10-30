@@ -14,6 +14,16 @@ private[stackdriver] final class JsonStringBuilder(val underlying: java.lang.Str
     this
   }
 
+  def `[` : JsonStringBuilder = {
+    underlying.append('[')
+    this
+  }
+
+  def `]` : JsonStringBuilder = {
+    underlying.append(']')
+    this
+  }
+
   def `:` : JsonStringBuilder = {
     underlying.append(':')
     this
