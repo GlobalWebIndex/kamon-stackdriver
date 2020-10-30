@@ -3,6 +3,7 @@ package kamon.stackdriver
 import kamon.stackdriver.StackdriverMarker.LogValue.{BooleanValue, NestedValue, NullValue, NumberValue, StringValue}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import kamon.stackdriver.StackdriverMarker.LogValue.ArrayValue
 
 class BasicStackdriverMarkerTest extends AnyWordSpec with Matchers {
 
@@ -39,6 +40,23 @@ class BasicStackdriverMarkerTest extends AnyWordSpec with Matchers {
           "markerName",
           NestedValue(Map("foo" -> NestedValue(Map("bar" -> StringValue("baz")))))
         ).encode(builder).result shouldBe """"markerName":{"foo":{"bar":"baz"}}""".stripMargin
+      }
+      "given string and simple array value" in {
+        BasicStackdriverMarker("markerName", ArrayValue(StringValue("bar")))
+          .encode(builder)
+          .result shouldBe """"markerName":["bar"]"""
+      }
+      "given multiple values in array value" in {
+        BasicStackdriverMarker(
+          "markerName",
+          ArrayValue(StringValue("bar"), NullValue, BooleanValue(true), NumberValue(1))
+        ).encode(builder).result shouldBe """"markerName":["bar",null,true,1]"""
+      }
+      "given multiple array values" in {
+        BasicStackdriverMarker(
+          "markerName",
+          ArrayValue(ArrayValue(StringValue("baz")))
+        ).encode(builder).result shouldBe """"markerName":[["baz"]]""".stripMargin
       }
     }
   }
