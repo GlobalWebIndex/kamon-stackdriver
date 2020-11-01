@@ -32,11 +32,30 @@ abstract class StackdriverMarker extends Marker {
 object StackdriverMarker {
   sealed trait LogValue
   object LogValue {
-    final case object NullValue                                 extends LogValue
-    final case class StringValue(v: String)                     extends LogValue
-    final case class BooleanValue(v: Boolean)                   extends LogValue
-    final case class NumberValue(v: Long)                       extends LogValue
-    final case class NestedValue(nested: Map[String, LogValue]) extends LogValue
+    final case object NullValue extends LogValue {
+      override val productPrefix: String = "LogValue.NullValue"
+    }
+    final case class StringValue(v: String) extends LogValue {
+      override val productPrefix: String = "LogValue.StringValue"
+    }
+    final case class BooleanValue(v: Boolean) extends LogValue {
+      override val productPrefix: String = "LogValue.BooleanValue"
+    }
+    final case class NumberValue(v: Long) extends LogValue {
+      override val productPrefix: String = "LogValue.NumberValue"
+    }
+    final case class NestedValue(nested: Map[String, LogValue]) extends LogValue {
+      override val productPrefix: String = "LogValue.NestedValue"
+    }
+    object NestedValue {
+      def apply(pairs: (String, LogValue)*): NestedValue = NestedValue(pairs.toMap)
+    }
+    final case class ArrayValue(elements: Vector[LogValue]) extends LogValue {
+      override val productPrefix: String = "LogValue.ArrayValue"
+    }
+    object ArrayValue {
+      def apply(elements: LogValue*): ArrayValue = new ArrayValue(elements.toVector)
+    }
 
     trait Writer {
       def write(name: String, builder: JsonStringBuilder, logValue: LogValue): JsonStringBuilder
@@ -44,8 +63,8 @@ object StackdriverMarker {
 
     object JsonWriter extends Writer {
 
-      private def jsonStringBuilder(value: LogValue, builder: JsonStringBuilder): Unit =
-        value match {
+      private[this] def writeValue(logValue: LogValue, builder: JsonStringBuilder): Unit =
+        logValue match {
           case StringValue(v) =>
             builder.encodeString(v)
           case NumberValue(v) =>
@@ -55,19 +74,29 @@ object StackdriverMarker {
           case BooleanValue(b) =>
             builder.encodeBoolean(b)
           case NestedValue(nested) =>
-            val elementsCount = nested.size
-            nested
-              .foldLeft((1, builder.`{`)) {
-                case ((counter, acc), (k, v)) =>
-                  jsonStringBuilder(v, acc.encodeString(k).`:`)
-                  val encodedWithComma = if (counter == elementsCount) acc else acc.`,`
-                  counter + 1 -> encodedWithComma
-              }
-              ._2 `}`
+            var i = 0
+            builder.`{`
+            nested.foreach {
+              case (key, value) =>
+                if (i > 0) builder.`,`
+                builder.encodeString(key).`:`
+                writeValue(value, builder)
+                i = i + 1
+            }
+            builder.`}`
+          case ArrayValue(elements) =>
+            var i = 0
+            builder.`[`
+            elements.foreach { value =>
+              if (i > 0) builder.`,`
+              writeValue(value, builder)
+              i = i + 1
+            }
+            builder.`]`
         }
 
       override def write(name: String, builder: JsonStringBuilder, value: LogValue): JsonStringBuilder = {
-        jsonStringBuilder(value, builder.encodeString(name).`:`)
+        writeValue(value, builder.encodeString(name).`:`)
         builder
       }
     }
