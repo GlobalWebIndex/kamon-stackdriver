@@ -3,3 +3,4 @@ target/
 google-service-account.json
 .metals
 .bloop
+.bsp

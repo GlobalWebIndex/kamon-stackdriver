@@ -6,10 +6,13 @@ Kamon-Stackdriver is a library to report metrics collected by [Kamon](https://gi
 
 ### Getting Started
 
-Add `gwidx` Bintray repository and dependencies:
-
+Add `sbt-github-packages` plugin :
 ```sbt
-resolvers += Resolver.bintrayRepo("gwidx", "maven")
+addSbtPlugin("com.codecommit"            % "sbt-github-packages" % "0.5.2")
+```
+Add resolver and dependencies :
+```sbt
+resolvers += Resolver.githubPackages("GlobalWebIndex")
 libraryDependencies ++= Seq(
   "io.kamon" %% "kamon-stackdriver"         % "<version>",
   "io.kamon" %% "kamon-logback-stackdriver" % "<version>"

@@ -12,11 +12,19 @@ val defaultScalaVersion = "2.13.3"
 
 val mimaPreviousVersion = "1.2.0"
 
+/** sbt-github-packages */
+resolvers ++= Seq(Resolver.githubPackages("GlobalWebIndex"))
+val publishSettings = Seq(
+  githubOwner := "GlobalWebIndex",
+  githubRepository := "kamon-stackdriver",
+  githubTokenSource := TokenSource.Environment("GITHUB_TOKEN") || TokenSource.GitConfig("github.token")
+)
+
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)
+  .settings(publishSettings) // remove it when https://github.com/djspiewak/sbt-github-packages/pull/34 is fixed, ThisBuild/Global won't help
   .settings(
     skip in publish := true,
-    bintrayEnsureBintrayPackageExists := {},
     crossScalaVersions := Seq.empty,
     scalaVersion := defaultScalaVersion
   )
@@ -24,15 +32,13 @@ lazy val `kamon-stackdriver-root` = (project in file("."))
 
 val `kamon-stackdriver` = project
   .configs(IntegrationTest)
+  .settings(publishSettings)
   .settings(
     Defaults.itSettings,
     inConfig(IntegrationTest)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings),
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, googleMonitoring, googleTracing, googleCloudCore) ++
       ittestScope(logbackClassic, kamonTestKit, scalatest),
-    bintrayOrganization := Some("gwidx"),
-    bintrayRepository := "maven",
-    bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
     mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
@@ -43,13 +49,11 @@ def ittestScope(deps: sbt.ModuleID*): scala.Seq[sbt.ModuleID] = deps.map(_ % "it
 val `kamon-logback-stackdriver` = project
   .enablePlugins(JavaAgent)
   .settings(instrumentationSettings)
+  .settings(publishSettings)
   .settings(
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++
       testScope(sprayJson, kamonTestKit, scalatest),
-    bintrayOrganization := Some("gwidx"),
-    bintrayRepository := "maven",
-    bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
     mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
