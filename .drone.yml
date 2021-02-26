@@ -23,7 +23,7 @@ steps:
   pull: if-not-exists
   image: lustefaniak/sbt:adoptopenjdk8_1.4.1_2.13.3
   commands:
-  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 scalafmtCheckAll +test
+  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +test
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
