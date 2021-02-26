@@ -20,8 +20,6 @@ val publishSettings = Seq(
   githubTokenSource := TokenSource.Environment("GITHUB_TOKEN") || TokenSource.GitConfig("github.token")
 )
 
-githubTokenSource in Test := TokenSource.Environment("GITHUB_TOKEN") || TokenSource.GitConfig("github.token")
-
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)
   .settings(publishSettings) // remove it when https://github.com/djspiewak/sbt-github-packages/pull/34 is fixed, ThisBuild/Global won't help
