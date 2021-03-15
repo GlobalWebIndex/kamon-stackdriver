@@ -12,12 +12,11 @@ val defaultScalaVersion = "2.13.3"
 
 val mimaPreviousVersion = "1.2.0"
 
-/** sbt-github-packages */
-resolvers ++= Seq(Resolver.githubPackages("GlobalWebIndex"))
+resolvers ++= Seq("GitHub Package Registry (GlobalWebIndex/kamon-stackdriver)" at s"https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver")
+
 val publishSettings = Seq(
-  githubOwner := "GlobalWebIndex",
-  githubRepository := "kamon-stackdriver",
-  githubTokenSource := TokenSource.Environment("GITHUB_TOKEN") || TokenSource.GitConfig("github.token")
+  publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver"),
+  credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", sys.env("GITHUB_TOKEN"))
 )
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
