@@ -16,7 +16,7 @@ resolvers ++= Seq("GitHub Package Registry (GlobalWebIndex/kamon-stackdriver)" a
 
 val publishSettings = Seq(
   publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver"),
-  credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", sys.env("GITHUB_TOKEN"))
+  credentials ++= sys.env.get("GITHUB_TOKEN").map(Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", _))
 )
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
