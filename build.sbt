@@ -1,3 +1,5 @@
+import sbt.Keys.publishTo
+
 val kamon            = "io.kamon"        %% "kamon-core"              % "2.1.8"
 val kamonTestKit     = "io.kamon"        %% "kamon-testkit"           % "2.1.8"
 val kamonLogback     = "io.kamon"        %% "kamon-logback"           % "2.1.8"
@@ -12,7 +14,8 @@ val defaultScalaVersion = "2.13.3"
 
 val mimaPreviousVersion = "1.2.0"
 
-ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver")
+val ghRepo = "GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver"
+
 ThisBuild / credentials ++= sys.env.get("GITHUB_TOKEN").map(Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", _))
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
@@ -34,7 +37,8 @@ val `kamon-stackdriver` = project
       ittestScope(logbackClassic, kamonTestKit, scalatest),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
-    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
+    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion),
+    publishTo := Some(ghRepo)
   )
 
 def ittestScope(deps: sbt.ModuleID*): scala.Seq[sbt.ModuleID] = deps.map(_ % "it,test")
@@ -48,5 +52,6 @@ val `kamon-logback-stackdriver` = project
       testScope(sprayJson, kamonTestKit, scalatest),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
-    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
+    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion),
+    publishTo := Some(ghRepo)
   )
