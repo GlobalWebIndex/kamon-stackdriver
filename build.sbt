@@ -12,8 +12,6 @@ val defaultScalaVersion = "2.13.3"
 
 val mimaPreviousVersion = "1.2.0"
 
-resolvers ++= Seq("GitHub Package Registry (GlobalWebIndex/kamon-stackdriver)" at s"https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver")
-
 val publishSettings = Seq(
   publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver"),
   credentials ++= sys.env.get("GITHUB_TOKEN").map(Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", _))
@@ -21,7 +19,6 @@ val publishSettings = Seq(
 
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)
-  .settings(publishSettings) // remove it when https://github.com/djspiewak/sbt-github-packages/pull/34 is fixed, ThisBuild/Global won't help
   .settings(
     skip in publish := true,
     crossScalaVersions := Seq.empty,
