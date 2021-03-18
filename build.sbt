@@ -12,11 +12,6 @@ val defaultScalaVersion = "2.13.3"
 
 val mimaPreviousVersion = "1.2.0"
 
-val publishSettings = Seq(
-  publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver"),
-  credentials ++= sys.env.get("GITHUB_TOKEN").map(Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", _))
-)
-
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)
   .settings(
@@ -28,7 +23,6 @@ lazy val `kamon-stackdriver-root` = (project in file("."))
 
 val `kamon-stackdriver` = project
   .configs(IntegrationTest)
-  .settings(publishSettings)
   .settings(
     Defaults.itSettings,
     inConfig(IntegrationTest)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings),
@@ -45,7 +39,6 @@ def ittestScope(deps: sbt.ModuleID*): scala.Seq[sbt.ModuleID] = deps.map(_ % "it
 val `kamon-logback-stackdriver` = project
   .enablePlugins(JavaAgent)
   .settings(instrumentationSettings)
-  .settings(publishSettings)
   .settings(
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++
