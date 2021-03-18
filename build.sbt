@@ -1,5 +1,3 @@
-import sbt.Keys.publishTo
-
 val kamon            = "io.kamon"        %% "kamon-core"              % "2.1.8"
 val kamonTestKit     = "io.kamon"        %% "kamon-testkit"           % "2.1.8"
 val kamonLogback     = "io.kamon"        %% "kamon-logback"           % "2.1.8"
