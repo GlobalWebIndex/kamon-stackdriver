@@ -24,6 +24,9 @@ steps:
   image: lustefaniak/sbt:adoptopenjdk8_1.4.1_2.13.3
   commands:
   - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 scalafmtCheckAll +test
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
   volumes:
   - name: sbt-cache
     path: /cache
@@ -35,12 +38,10 @@ steps:
   pull: if-not-exists
   image: lustefaniak/sbt:adoptopenjdk8_1.4.1_2.13.3
   commands:
-  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +publish
   environment:
-    BINTRAY_PASS:
-      from_secret: bintray_pass
-    BINTRAY_USER:
-      from_secret: bintray_user
+    GITHUB_TOKEN:
+      from_secret: github_token
   volumes:
   - name: sbt-cache
     path: /cache
@@ -52,12 +53,10 @@ steps:
   pull: if-not-exists
   image: lustefaniak/sbt:adoptopenjdk8_1.4.1_2.13.3
   commands:
-  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 bintrayEnsureCredentials +publish
+  - sbt -mem 2048 -Dcoursier.cache=/cache/.coursier/ -Dsbt.ivy.home=/cache/.ivy2/ -Divy.home=/cache/.ivy2/ -Dfile.encoding=utf-8 +publish
   environment:
-    BINTRAY_PASS:
-      from_secret: bintray_pass
-    BINTRAY_USER:
-      from_secret: bintray_user
+    GITHUB_TOKEN:
+      from_secret: github_token
   volumes:
   - name: sbt-cache
     path: /cache
