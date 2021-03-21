@@ -12,11 +12,14 @@ val defaultScalaVersion = "2.13.3"
 
 val mimaPreviousVersion = "1.2.0"
 
+val ghRepo = "GitHub Package Registry" at "https://maven.pkg.github.com/GlobalWebIndex/kamon-stackdriver"
+
+ThisBuild / credentials ++= sys.env.get("GITHUB_TOKEN").map(Credentials("GitHub Package Registry", "maven.pkg.github.com", "dmp-team", _))
+
 lazy val `kamon-stackdriver-root` = (project in file("."))
   .settings(noPublishing)
   .settings(
     skip in publish := true,
-    bintrayEnsureBintrayPackageExists := {},
     crossScalaVersions := Seq.empty,
     scalaVersion := defaultScalaVersion
   )
@@ -30,12 +33,10 @@ val `kamon-stackdriver` = project
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, googleMonitoring, googleTracing, googleCloudCore) ++
       ittestScope(logbackClassic, kamonTestKit, scalatest),
-    bintrayOrganization := Some("gwidx"),
-    bintrayRepository := "maven",
-    bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
-    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
+    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion),
+    publishTo := Some(ghRepo)
   )
 
 def ittestScope(deps: sbt.ModuleID*): scala.Seq[sbt.ModuleID] = deps.map(_ % "it,test")
@@ -47,10 +48,8 @@ val `kamon-logback-stackdriver` = project
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++
       testScope(sprayJson, kamonTestKit, scalatest),
-    bintrayOrganization := Some("gwidx"),
-    bintrayRepository := "maven",
-    bintrayVcsUrl := Some("https://github.com/GlobalWebIndex/kamon-stackdriver.git"),
     crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
-    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion)
+    mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion),
+    publishTo := Some(ghRepo)
   )
