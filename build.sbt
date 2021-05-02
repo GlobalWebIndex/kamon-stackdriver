@@ -4,7 +4,7 @@ val kamonLogback     = "io.kamon"        %% "kamon-logback"           % "2.1.8"
 val kanela           = "io.kamon"         % "kanela-agent"            % "1.0.7"
 val googleCloudCore  = "com.google.cloud" % "google-cloud-core"       % "1.93.3"
 val googleMonitoring = "com.google.cloud" % "google-cloud-monitoring" % "1.99.2"
-val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "1.0.3"
+val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "1.3.3"
 val sprayJson        = "io.spray"        %% "spray-json"              % "1.3.5"
 val scalatest        = "org.scalatest"   %% "scalatest"               % "3.2.2"
 
