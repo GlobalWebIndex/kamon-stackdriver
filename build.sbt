@@ -33,7 +33,7 @@ val `kamon-stackdriver` = project
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, googleMonitoring, googleTracing, googleCloudCore) ++
       ittestScope(logbackClassic, kamonTestKit, scalatest),
-    crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
+    crossScalaVersions := Seq("2.12.13", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
     mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion),
     publishTo := Some(ghRepo)
@@ -48,7 +48,7 @@ val `kamon-logback-stackdriver` = project
     libraryDependencies ++= providedScope(kanela) ++
       compileScope(kamon, kamonLogback, logbackClassic, googleCloudCore) ++
       testScope(sprayJson, kamonTestKit, scalatest),
-    crossScalaVersions := Seq("2.12.11", defaultScalaVersion),
+    crossScalaVersions := Seq("2.12.13", defaultScalaVersion),
     scalaVersion := defaultScalaVersion,
     mimaPreviousArtifacts := Set(organization.value %% moduleName.value % mimaPreviousVersion),
     publishTo := Some(ghRepo)
