@@ -8,7 +8,7 @@ val googleTracing    = "com.google.cloud" % "google-cloud-trace"      % "1.0.3"
 val sprayJson        = "io.spray"        %% "spray-json"              % "1.3.5"
 val scalatest        = "org.scalatest"   %% "scalatest"               % "3.2.2"
 
-val defaultScalaVersion = "2.13.3"
+val defaultScalaVersion = "2.13.5"
 
 val mimaPreviousVersion = "1.2.0"
 
