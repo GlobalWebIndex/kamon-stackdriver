@@ -1,3 +1,5 @@
+Use [google-cloud-logging-logback](https://cloud.google.com/java/docs/reference/google-cloud-logging-logback/latest/com.google.cloud.logging.logback.LoggingAppender) instead
+
 # Kamon-Stackdriver
 
 Kamon-Stackdriver is a library to report metrics collected by [Kamon](https://github.com/kamon-io/Kamon) to
